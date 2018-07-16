@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+  <title>使用hexo搭建Blog | Rock &#39;n&#39; Roll will break your heart.</title>
+  <meta name="description" content="" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="MobileOptimized" content="320" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" type="text/css" href="/css/screen.css" />
+  <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Noto+Serif:400,700,400italic|Open+Sans:700,400" />
+
+  <meta name="generator" content="Rock 'n' Roll will break your heart.">
+
+  
+  
+  <link rel="alternate" type="application/atom+xml" title="Atom 0.3" href="atom.xml">
+  
+  
+
+  
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+</head>
+
+
+<body class="post-template">
+
+  <header class="site-head"  style="background-image: url(//blog.ghost.org/content/images/2013/Nov/cover.png)" >
+    <div class="vertical">
+        <div class="site-head-content inner">
+             <a class="blog-logo" href="/"><img src="/images/logo.jpeg" alt="Blog Logo"/></a> 
+            <h1 class="blog-title">Rock 'n' Roll will break your heart.</h1>
+            <h2 class="blog-description"></h2>
+        </div>
+    </div>
+</header>
+  
+
+<main class="content" role="main">
+  <article class="post">
+    <span class="post-meta">
+      <time datetime="2018-07-14T17:47:33.000Z" itemprop="datePublished">
+          2018-07-15
+      </time>
+    
+    
+    | 
+    <a href='/tags/hexo/'>hexo</a>,
+    
+    <a href='/tags/Blog/'>Blog</a>
+    
+    
+</span>
+    <h1 class="post-title">使用hexo搭建Blog</h1>
+    <section class="post-content">
+      <h2 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h2><blockquote>
+<p>Hexo 是一个快速、简洁且高效的博客框架。Hexo 使用 Markdown（或其他渲染引擎）解析文章，在几秒内，即可利用靓丽的主题生成静态网页。    –<a href="hexo文档 https://hexo.io/zh-cn/docs/index.html">hexo 文档</a></p>
+</blockquote>
+<p>hexo 基于<code>node.js</code>和<code>npm</code>,生成静态页面。对使用者而言高度封装，几乎不需要前端知识，各种已有主题又十分美观，可以说是个人博客的完美选择。</p>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p>安装git</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">brew install git</span><br></pre></td></tr></table></figure>
+<hr>
+<p>安装npm<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget -qO- https://raw.github.com/creationix/nvm/master/install.sh | sh</span><br></pre></td></tr></table></figure><br>重启终端</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nvm install stable</span><br></pre></td></tr></table></figure>
+<hr>
+<p>安装hexo<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install -g hexo-cli</span><br></pre></td></tr></table></figure></p>
+<h2 id="基础配置"><a href="#基础配置" class="headerlink" title="基础配置"></a>基础配置</h2><p><code>_config.yml</code>包含了博客的大部分配置，配置内容可在<a href="https://hexo.io/zh-cn/docs/configuration.html" target="_blank" rel="noopener">文档</a>中查看</p>
+<p>目录：</p>
+<ul>
+<li>source 存放文章<ul>
+<li>_drafts 存放草稿，默认不显示</li>
+<li>_posts 存放文章</li>
+</ul>
+</li>
+<li>themes 存放主题</li>
+<li>scaffolds 模版，新建文章时受模版控制</li>
+<li>public 存放生成的html等文件</li>
+</ul>
+<h2 id="基础使用"><a href="#基础使用" class="headerlink" title="基础使用"></a>基础使用</h2><p><code>hexo init &lt;folder&gt;</code> 在文件夹中初始化hexo<br><code>hexo new [layout] &lt;title&gt;</code> 新建文章，layout指draft或post，draft为草稿，post为发布的文章<br><code>hexo generator</code> 将markdown转为静态页面<br><code>hexo publish [layout] &lt;filename&gt;</code> 发表草稿，将draft中指定的文件转到post中<br><code>hexo server</code> 启动hexo服务器，默认端口4000，可以通过<code>-p</code>设置<br><code>hexo clean</code> 清除缓存文件和已经生成的静态文件<br><code>hexo list</code> 展示网站信息</p>
+<h2 id="标签插件"><a href="#标签插件" class="headerlink" title="标签插件"></a>标签插件</h2><p>包含大量非Markdown语法，不便迁移，尽量不使用。两个例子：</p>
+<h3 id="引用块"><a href="#引用块" class="headerlink" title="引用块"></a>引用块</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#123;% blockquote [author[, source]] [link] [source_link_title] %&#125;</span><br><span class="line">content</span><br><span class="line">&#123;% endblockquote %&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="代码块"><a href="#代码块" class="headerlink" title="代码块"></a>代码块</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#123;% codeblock [title] [lang:language] [url] [link text] %&#125;</span><br><span class="line">code snippet</span><br><span class="line">&#123;% endcodeblock %&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="主题"><a href="#主题" class="headerlink" title="主题"></a>主题</h2><p><a href="https://hexo.io/themes/" target="_blank" rel="noopener">官方主题页</a></p>
+<p>包含了主题展示和github跳转，按照github项目中README安装即可。</p>
+<p>本人使用的是<a href="https://github.com/kywk/hexo-theme-casper" target="_blank" rel="noopener">casper的修改版</a></p>
+<h2 id="资源文件夹"><a href="#资源文件夹" class="headerlink" title="资源文件夹"></a>资源文件夹</h2><p>如果你的Hexo项目中只有少量图片，那最简单的方法就是将它们放在 source/images 文件夹中。然后通过类似于 <code>![](/images/image.jpg)</code>的方法访问它们。</p>
+<p>对于那些想要更有规律地提供图片和其他资源以及想要将他们的资源分布在各个文章上的人来说，可以通过将 config.yml 文件中的 <code>post_asset_folder</code> 选项设为 true 来打开。</p>
+<h2 id="about页面"><a href="#about页面" class="headerlink" title="about页面"></a>about页面</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo new page about</span><br></pre></td></tr></table></figure>
+<p>修改Front-matter部分，layout为false，comments为false</p>
+<h2 id="评论"><a href="#评论" class="headerlink" title="评论"></a>评论</h2><p>本人使用了valine，主要工作是取theme文件夹里修改相关的代码。有些主题提供了一些评论系统，直接配置即可。</p>
+<p><a href="https://valine.js.org/quickstart.html#%E8%AF%84%E8%AE%BA%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86" target="_blank" rel="noopener">官方教程</a>在这，过程很简明。先去LeanCloud上注册账号，获取AppKey及AppId，填到评论的js中即可。</p>
+<p>最好再配置一下LeanCloud的安全域名，可以保证只有Blog的访问。</p>
+<h2 id="分享"><a href="#分享" class="headerlink" title="分享"></a>分享</h2><p>其实就是些<code>a</code>标签，该主题自带，不过是Twitter、脸书及Google的，我自己照着加了一个微博的。代码如下：<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;a <span class="class"><span class="keyword">class</span></span>=<span class="string">""</span> href=<span class="string">"http://service.weibo.com/share/share.php?url=&lt;%- permalink %&gt;"</span> onclick=<span class="string">"window.open(this.href, 'weibo-share', 'width=550,height=235');return false;"</span>&gt;</span><br><span class="line">    &lt;span <span class="class"><span class="keyword">class</span></span>=<span class="string">""</span>&gt;Weibo&lt;<span class="regexp">/span&gt;</span></span><br><span class="line"><span class="regexp">&lt;/</span>a&gt;</span><br></pre></td></tr></table></figure></p>
+<p>似乎baidushare也很常用，但是……有点丑。</p>
+<h2 id="搭建"><a href="#搭建" class="headerlink" title="搭建"></a>搭建</h2><p>铛铛铛～ 终于到激动人心的时候了，上 vps/github.io!</p>
+<h3 id="github-io"><a href="#github-io" class="headerlink" title="github.io"></a>github.io</h3><p>需要新建一个<username>.github.io 的仓库</username></p>
+<p>修改config.yml中的deploy为<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">deploy:</span><br><span class="line"> - type: git</span><br><span class="line">   repo: &lt;repo-name&gt;</span><br><span class="line">   branch: master</span><br></pre></td></tr></table></figure></p>
+<p>之后执行hexo deploy</p>
+<p>可以自行配置域名，在此不赘述</p>
+<h3 id="vps"><a href="#vps" class="headerlink" title="vps"></a>vps</h3><p>vps需要自己租 Vultr 或者 DigitalOcean 等，最低配价格为5刀/月</p>
+<h2 id="404"><a href="#404" class="headerlink" title="404"></a>404</h2><p>首先需要创建一个自定义404页面，与about页相似</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo new page 404</span><br></pre></td></tr></table></figure>
+<p>修改Front-matter部分，layout为false，permalink为/404.html，comments为false</p>
+<p>与/about不同，它会在根目录生成404.html而不是/404/index.html。填入内容即可</p>
+<p>对于github pages：检测到根目录的404.html时，会将其作为404页面</p>
+<p>对于nginx：修改站点conf，如blog.conf，添加error page条目<code>error_page 404 /404.html;</code></p>
+
+    </section>
+    <footer class="post-footer">
+      <section class="author">
+    <h4>paz</h4>
+    <p>Rock 'n' Roll will break your heart.</p>
+</section>
+
+<section class="author-info">
+    <a class="icon" href="https://github.com/ScaldingBlood"
+       onclick="window.open(this.href);return false;">
+        <span>Github</span>
+    </a>
+</section>
+      <section class="share">
+    <h4>Share this post</h4>
+    <a class="icon-twitter" href="http://twitter.com/share?url=http://yoursite.com/2018/07/15/使用hexo搭建Blog/"
+       onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+        <span class="hidden">Twitter</span>
+    </a>
+    <a class="icon-weibo" href="http://service.weibo.com/share/share.php?url=http://yoursite.com/2018/07/15/使用hexo搭建Blog/"
+        onclick="window.open(this.href, 'weibo-share', 'width=550,height=235');return false;">
+         <span class="">Weibo</span>
+     </a>
+    <!-- 
+    <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://yoursite.com/2018/07/15/使用hexo搭建Blog/"
+       onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+        <span class="hidden">Facebook</span>
+    </a>
+    <a class="icon-google-plus" href="https://plus.google.com/share?url=http://yoursite.com/2018/07/15/使用hexo搭建Blog/"
+       onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+        <span class="hidden">Google+</span>
+    </a> -->
+</section>
+    </footer>
+  </article>
+  <nav class="pagination" role="pagination">
+    
+    <span class="page-number">•</span>
+    
+</nav>
+  <div id="comment" class="comments-area">
+    <!-- <h1 class="title"><a href="#disqus_comments" name="disqus_comments">Comments</a></h1>
+
+     -->
+    <div id="vcomments"></div>
+    <script>
+        new Valine({
+            el: '#vcomments',
+            appId: 'ICvK93wM58afCFhIRoHUWBCd-gzGzoHsz',
+            appKey: 'qmM8S0zfhfSIot1Yf1d8qcnK'
+        })
+    </script>
+</div>
+</main>
+
+
+  
+<footer class="site-footer">
+  
+  <a class="subscribe icon-feed" href="atom.xml"><span class="tooltip">Subscribe!</span></a>
+  
+  <div class="inner">
+     <section class="copyright">All content copyright <a href="/">Rock 'n' Roll will break your heart.</a> &copy; 2014 &bull; All rights reserved.</section>
+     <section class="poweredby">Proudly published with <a class="icon-ghost" href="http://zespia.tw/hexo/">Hexo</a></section>
+  </div>
+</footer>
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+<script type="text/javascript" src="/js/jquery.fitvids.js"></script>
+<script type="text/javascript" src="/js/index.js"></script>
+
+
+
+
+
+
+</body>
+</html>
