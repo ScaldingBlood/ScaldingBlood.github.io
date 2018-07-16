@@ -98,16 +98,33 @@
 <p>似乎baidushare也很常用，但是……有点丑。</p>
 <h2 id="搭建"><a href="#搭建" class="headerlink" title="搭建"></a>搭建</h2><p>铛铛铛～ 终于到激动人心的时候了，上 vps/github.io!</p>
 <h3 id="github-io"><a href="#github-io" class="headerlink" title="github.io"></a>github.io</h3><p>需要新建一个<username>.github.io 的仓库</username></p>
+<p>使用git部署，需要先安装插件：<br>···<br>npm install hexo-deployer-git –save<br>···</p>
 <p>修改config.yml中的deploy为<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">deploy:</span><br><span class="line"> - type: git</span><br><span class="line">   repo: &lt;repo-name&gt;</span><br><span class="line">   branch: master</span><br></pre></td></tr></table></figure></p>
 <p>之后执行hexo deploy</p>
 <p>可以自行配置域名，在此不赘述</p>
 <h3 id="vps"><a href="#vps" class="headerlink" title="vps"></a>vps</h3><p>vps需要自己租 Vultr 或者 DigitalOcean 等，最低配价格为5刀/月</p>
+<p>部署其实也很简单…… 先安装一个Nginx，记得防火墙开启权限 大致是这样：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">apt-get install nginx</span><br><span class="line"></span><br><span class="line">ufw allow &quot;Nginx Full&quot;</span><br></pre></td></tr></table></figure></p>
+<p>然后配置一下nginx，使之能够显示博客站点</p>
+<p>创建站点配置文件<code>vi /etc/nginx/conf.d/blog.conf</code></p>
+<p>内容：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">        listen 80;</span><br><span class="line">        listen [::]:80;</span><br><span class="line">        root /var/www/blog/html;</span><br><span class="line">        index index.html index.htm index.nginx-debian.html;</span><br><span class="line">        server_name paz-spiegel.top www.paz-spiegel.top;</span><br><span class="line">        access_log /var/log/nginx/blog_access.log;</span><br><span class="line">        error_log /var/log/nginx/blog_error.log;</span><br><span class="line">        error_page 404 /404.html;</span><br><span class="line">        location ~* ^.+\.(ico|gif|jpg|jpeg|png)$ &#123;</span><br><span class="line">          root /var/www/blog/html;</span><br><span class="line">          access_log   off;</span><br><span class="line">          expires      1d;</span><br><span class="line">        &#125;</span><br><span class="line">        location ~* ^.+\.(css|js|txt|xml|swf|wav)$ &#123;</span><br><span class="line">          root /var/www/blog/html;</span><br><span class="line">          access_log   off;</span><br><span class="line">          expires      10m;</span><br><span class="line">        &#125;</span><br><span class="line">        location / &#123;</span><br><span class="line">                try_files $uri $uri/ =404;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>之后配置git钩子 也就是一个空的git仓库，当本地的hexo推送给这个仓库时，会有个脚本执行自动拉取代码。</p>
+<p><code>mkdir -p /var/www/blog/html</code>路径用于存放站点</p>
+<p><code>git init --bare blog.git</code>创建空仓库</p>
+<p><code>cd blog.git/hooks</code>准备创建钩子脚本</p>
+<p><code>vi post-receive</code>创建脚本</p>
+<p>内容如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/bash</span><br><span class="line">git --work-tree=/var/www/blog/html --git-dir=/var/www/blog/html/blog.git checkout -f</span><br></pre></td></tr></table></figure></p>
+<p>git checkout -f 会强制拉取代码</p>
+<p>本地配置config.yml的deploy部分：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">deploy:</span><br><span class="line">   type: git</span><br><span class="line">   repo: </span><br><span class="line">    vps: ssh://&lt;username&gt;@&lt;ip&gt;:&lt;port&gt;/var/www/path/to/blog.git</span><br><span class="line">   branch: master</span><br></pre></td></tr></table></figure></p>
+<p>这种方式可以配置ssh的端口，其中的username需要可以免密登陆vps。</p>
 <h2 id="404"><a href="#404" class="headerlink" title="404"></a>404</h2><p>首先需要创建一个自定义404页面，与about页相似</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo new page 404</span><br></pre></td></tr></table></figure>
 <p>修改Front-matter部分，layout为false，permalink为/404.html，comments为false</p>
 <p>与/about不同，它会在根目录生成404.html而不是/404/index.html。填入内容即可</p>
 <p>对于github pages：检测到根目录的404.html时，会将其作为404页面</p>
 <p>对于nginx：修改站点conf，如blog.conf，添加error page条目<code>error_page 404 /404.html;</code></p>
+<h2 id="Outro"><a href="#Outro" class="headerlink" title="Outro"></a>Outro</h2><p>一整天时间搭建Blog，基本达到心里预期，基本都很简明</p>
+<p>后续还有SEO、Google Analysis及全站Https</p>
+<p>在反复沮丧中坚持✊</p>
 
     </section>
     <footer class="post-footer">
