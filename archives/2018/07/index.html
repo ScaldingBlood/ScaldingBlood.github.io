@@ -22,6 +22,9 @@
   
 
   
+  
+    <link rel="shortcut icon" href="/images/favicon.png" type="image/x-icon" />
+  
   <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
   <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
 </head>
@@ -29,12 +32,14 @@
 
 <body class="home-template">
 
-  <header class="site-head"  style="background-image: url(//blog.ghost.org/content/images/2013/Nov/cover.png)" >
+  <header class="site-head">
     <div class="vertical">
         <div class="site-head-content inner">
-             <a class="blog-logo" href="/"><img src="/images/logo.jpeg" alt="Blog Logo"/></a> 
-            <h1 class="blog-title">Rock 'n' Roll will break your heart.</h1>
-            <h2 class="blog-description"></h2>
+            <a class="blog-logo" href="/">
+                 <img src="/images/logo.jpeg" alt="Blog Logo"/> 
+                <h1 class="blog-title">Rock 'n' Roll will break your heart.</h1>
+                <h2 class="blog-description"></h2>
+            </a>
         </div>
     </div>
 </header>
@@ -49,15 +54,14 @@
       </time>
     
 </span>
-      <h2 class="post-title"><a href="/2018/07/19/动态规划实战/">动态规划实战</a></h2>
+      <h2 class="post-title"><a href="/2018/07/19/动态规划实战/">动态规划初探</a></h2>
     </header>
     <section class="post-excerpt">
       <p>
       
-        
-每个阶段只有一个状态-&gt;递推每个阶段的最优状态都是由上一个阶段的最优状态得到的-&gt;贪心每个阶段的最优状态是由之前所有阶段的状态的组合得到的-&gt;搜索每个阶段的最优状态可以从之前某个阶段的某个或某些状态直接得到而不管之前这个状态是如何得到的-&gt;动态规划。—知乎
-
-
+        Intro动态规划（DP）问题是一道坎。相信很多人都有这种感觉，它是中高难度题的常客，蕴含了程序设计的经典思想。
+这种技法或者说思想难以掌握是有原因的。它的核心目标是全局最优，而不是局部最优，这是反直觉的。人脑不是机器，所以我们往往陷入贪心的想法。我第一次遇到背包问题的时候，直接的想法是把物品按 价值/重量 排序，再依次取。这就好比小偷作案，总是先挑价值高又轻便的拿。但是这种经验并不是最优解。
+说到背包问题，第一次看到正解后过了很长时间
       
       </p>
       
@@ -91,11 +95,12 @@
         Intro
 Hexo 是一个快速、简洁且高效的博客框架。Hexo 使用 Markdown（或其他渲染引擎）解析文章，在几秒内，即可利用靓丽的主题生成静态网页。    –hexo 文档
 
-hexo 基于node.js和npm,生成静态页面。对使用者而言高度封装，几乎不需要前端知识，各种已有主题又十分美观，可以说是个人博客的完美选择。
-安装安装git
+
+hexo 基于node.js和npm。它生成静态页面，对使用者而言高度封装，几乎不需要前端知识，各种已有主题又十分美观，而且切换也十分方便，可以说是个人博客的完美选择。
+安装（MacOS）安装git
 1brew install git
 
-安装npm1wget -qO- https://ra
+安装npm1w
       
       </p>
       
@@ -125,7 +130,7 @@ hexo 基于node.js和npm,生成静态页面。对使用者而言高度封装，�
   </div>
 </footer>
 
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+  <script src="//apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
 
 <script type="text/javascript" src="/js/jquery.fitvids.js"></script>
 <script type="text/javascript" src="/js/index.js"></script>

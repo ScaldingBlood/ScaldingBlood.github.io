@@ -4,7 +4,7 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
-  <title>动态规划实战 | Rock &#39;n&#39; Roll will break your heart.</title>
+  <title>动态规划初探 | Rock &#39;n&#39; Roll will break your heart.</title>
   <meta name="description" content="" />
   <meta name="HandheldFriendly" content="True" />
   <meta name="MobileOptimized" content="320" />
@@ -22,6 +22,9 @@
   
 
   
+  
+    <link rel="shortcut icon" href="/images/favicon.png" type="image/x-icon" />
+  
   <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
   <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
 </head>
@@ -29,12 +32,14 @@
 
 <body class="post-template">
 
-  <header class="site-head"  style="background-image: url(//blog.ghost.org/content/images/2013/Nov/cover.png)" >
+  <header class="site-head">
     <div class="vertical">
         <div class="site-head-content inner">
-             <a class="blog-logo" href="/"><img src="/images/logo.jpeg" alt="Blog Logo"/></a> 
-            <h1 class="blog-title">Rock 'n' Roll will break your heart.</h1>
-            <h2 class="blog-description"></h2>
+            <a class="blog-logo" href="/">
+                 <img src="/images/logo.jpeg" alt="Blog Logo"/> 
+                <h1 class="blog-title">Rock 'n' Roll will break your heart.</h1>
+                <h2 class="blog-description"></h2>
+            </a>
         </div>
     </div>
 </header>
@@ -48,11 +53,52 @@
       </time>
     
 </span>
-    <h1 class="post-title">动态规划实战</h1>
+    <h1 class="post-title">动态规划初探</h1>
     <section class="post-content">
-      <blockquote>
-<p>每个阶段只有一个状态-&gt;递推<br>每个阶段的最优状态都是由上一个阶段的最优状态得到的-&gt;贪心<br>每个阶段的最优状态是由之前所有阶段的状态的组合得到的-&gt;搜索<br>每个阶段的最优状态可以从之前某个阶段的某个或某些状态直接得到而不管之前这个状态是如何得到的-&gt;动态规划。<br>—<a href="https://www.zhihu.com/question/23995189/answer/35429905" target="_blank" rel="noopener">知乎</a></p>
+      <h2 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h2><p>动态规划（DP）问题是一道坎。相信很多人都有这种感觉，它是中高难度题的常客，蕴含了程序设计的经典思想。</p>
+<p>这种技法或者说思想难以掌握是有原因的。它的核心目标是全局最优，而不是局部最优，这是反直觉的。人脑不是机器，所以我们往往陷入贪心的想法。我第一次遇到背包问题的时候，直接的想法是把物品按 价值/重量 排序，再依次取。这就好比小偷作案，总是先挑价值高又轻便的拿。但是这种经验并不是最优解。</p>
+<p>说到背包问题，第一次看到正解后过了很长时间才真正理解。写本文之前，又读了一遍背包九讲(<a href="https://raw.githubusercontent.com/tianyicui/pack/master/V2.pdf" target="_blank" rel="noopener">pdf</a>)。确实背包问题是经典的DP问题，也是对我影响最深的DP问题。推荐对DP有一定理解之后再读。</p>
+<p>写这篇博客之前，我对DP也是有些畏惧的，做题属于碰运气，有时能A，有时不行，还有些时候我都不清楚是要用DP解题。于是花了2周多的时间，刷了一些leetcode上的DP题目。</p>
+<p><img src="leetcode.png" alt="leetcode"></p>
+<p>目前算是初窥其貌，结合一些看到别人的总结，通俗得讲下我的理解。</p>
+<h2 id="初步分析"><a href="#初步分析" class="headerlink" title="初步分析"></a>初步分析</h2><p>如果说DP的核心目标是寻找全局最优解，那这个最优解是如何确保的呢？通过划分子问题，DP问题常常是需要多步的决策，如背包要挑选物品。这些子问题往往是迭代的，一个自问题依赖于另一个的解。每个自问题都能到达最优解就获取到全局最优。因此可以说DP问题就是如何划分子问题并找到子问题的解。</p>
+<p>从上面的描述里可以明显感觉到一个词，迭代。在我看来，迭代是符合人类思想的解决DP问题最直观的方式。</p>
+<p>举个栗子：</p>
+<p><img src="edit_distance.png" alt="edit distance"><br>来自leetcode72题，难度为hard。这道题我花了很久才做出来……而且回顾的时候又花了很久……</p>
+<p>其实题目并不是特别难，但是看起来比较吓人。hard级的题目中DP都不是很直接，需要一定的转换。</p>
+<p>根据题意，核心目标是匹配上两个字符串，通过delete、replace、add三种操作。那么子问题也就相对直接了，两个字符串的子串的匹配加上变成子串的步数即为结果。</p>
+<p>这里我的想法是有三种策略：</p>
+<ol>
+<li>将str1的首字母替换为str2的首字母</li>
+<li>删除str1的首字母，str2不变</li>
+<li>找到str1中str2首字母出现的第一个位置，删除它及之前的所有字母，删除str2首字母。</li>
+</ol>
+<p>当str1和2中有一方为空时，删除另一方全部字母或添加一方全部字母即可，也就是步数加上剩余一方的长度。</p>
+<p>代码如下：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> res = <span class="number">1</span> + getRes(i + <span class="number">1</span>, word1, str, map);</span><br><span class="line">res = Math.min(res, <span class="number">1</span> + getRes(i + <span class="number">1</span>, word1, str.substring(<span class="number">1</span>), map));</span><br><span class="line">res = Math.min(res, index + getRes(i + <span class="number">1</span>, word1, str.substring(index + <span class="number">1</span>), map));</span><br></pre></td></tr></table></figure></p>
+<p>其中<code>getRes</code>为对子串递归调用。</p>
+<p>但是这种解法直接提交以后出现TLE，超时错误。原因很简单，计算了重复状态。这里就可以引出DP中的常规操作，剪枝或者说记忆化搜索。我的代码中是使用了一个map来保存状态，通常更常用的方法是用一个数组记录。</p>
+<p>完整代码如下：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">minDistance</span><span class="params">(String word1, String word2)</span> </span>&#123;</span><br><span class="line">    Map&lt;String, Integer[]&gt; map = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">    IntStream.range(<span class="number">0</span>, word2.length() + <span class="number">1</span>).forEach(x -&gt; map.put(word2.substring(x), <span class="keyword">new</span> Integer[word1.length() + <span class="number">1</span>]));</span><br><span class="line">    <span class="keyword">return</span> getRes(<span class="number">0</span>, word1, word2, map);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getRes</span><span class="params">(<span class="keyword">int</span> i, String word1, String str, Map&lt;String, Integer[]&gt; map)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (map.get(str)[i] != <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">return</span> map.get(str)[i];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(i &gt;= word1.length())</span><br><span class="line">        <span class="keyword">return</span> str.length();</span><br><span class="line">    <span class="keyword">int</span> res = <span class="number">1</span> + getRes(i + <span class="number">1</span>, word1, str, map);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(str.length() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        res = Math.min(res, <span class="number">1</span> + getRes(i + <span class="number">1</span>, word1, str.substring(<span class="number">1</span>), map));</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span> index = str.indexOf(word1.charAt(i));</span><br><span class="line">        <span class="keyword">if</span> (index != -<span class="number">1</span>) &#123;</span><br><span class="line">            res = Math.min(res, index + getRes(i + <span class="number">1</span>, word1, str.substring(index + <span class="number">1</span>), map));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    map.get(str)[i] = res;</span><br><span class="line">    <span class="keyword">return</span> res;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="状态转移"><a href="#状态转移" class="headerlink" title="状态转移"></a>状态转移</h2><p>很多时候，动态规划问题的子问题并不好找。通过动态规划做题的经验我们知道有个叫递推方程的东西。而常见递推方程中递推的就是状态，也就是状态转移的过程，寻找状态的转移而去解决子问题是常见的思路。</p>
+<p><img src="interleaving_string.png" alt="interleaving_string"></p>
+<p>题目为leetcode97，由题意，需要用s1和s2组装成s3。s3从0到s3.length的长度都可以由s1和s2组成（子问题），s1和s2的组成方式则可以由i和j的二维数组表示。i代表s1的位置（substring(0, i)），j代表s2的位置。状态转移为<code>len = i + j - &gt; len + 1 = i + 1 + j / len + 1 = i + j + 1</code>满足相关位置的字符相同即可转移。代码如下：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isInterleave</span><span class="params">(String s1, String s2, String s3)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(s1.length() + s2.length() != s3.length())</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    <span class="keyword">int</span>[][] dp = <span class="keyword">new</span> <span class="keyword">int</span>[s3.length() + <span class="number">1</span>][s3.length() + <span class="number">1</span>];</span><br><span class="line">    dp[<span class="number">0</span>][<span class="number">0</span>] = <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= s3.length(); i++) &#123;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; i; j++) &#123;</span><br><span class="line">            <span class="keyword">if</span>(s1.length() &gt;= i -j &amp;&amp; dp[j][i-j -<span class="number">1</span>] == <span class="number">1</span> &amp;&amp; s1.charAt(i - j - <span class="number">1</span>) == s3.charAt(i -<span class="number">1</span>)) &#123;</span><br><span class="line">                dp[j][i - j] = <span class="number">1</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span>(s2.length() &gt;= i -j &amp;&amp; dp[i-j -<span class="number">1</span>][j] == <span class="number">1</span> &amp;&amp; s2.charAt(i - j - <span class="number">1</span>) == s3.charAt(i -<span class="number">1</span>)) &#123;</span><br><span class="line">                dp[i - j][j] = <span class="number">1</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> dp[s2.length()][s1.length()] == <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>很多DP的文章都在强调寻找递推式，但是递推式是靠近结果的一步。<strong>寻找递推式的过程，是划分子问题或者表示状态并得到状态的转移。</strong></p>
+<h2 id="一些理论"><a href="#一些理论" class="headerlink" title="一些理论"></a>一些理论</h2><p>知乎上关于理解动态规划也有许多回答，多是关于理论和概念的。能够用动态规划解的题目，状态都具有这两种特性。</p>
+<blockquote>
+<p>最优子结构: 每个阶段的最优状态可以从之前某个阶段的某个或某些状态直接得到<br>无后效性: 而不管之前这个状态是如何得到的</p>
 </blockquote>
+<p>做到一些dp题的时候，我感觉DP和DFS（广度优先搜索）的过程十分相近。例如一个网格，需要从左上角通过向下向右走到右下角，节点带权值。再理解动态规划之前，这对我来说就是走过所有节点并取走过该节点时最小值的问题。这里有一个解释：</p>
+<blockquote>
+<p>每个阶段只有一个状态-&gt;递推<br>每个阶段的最优状态都是由上一个阶段的最优状态得到的-&gt;贪心<br>每个阶段的最优状态是由之前所有阶段的状态的组合得到的-&gt;搜索<br>每个阶段的最优状态可以从之前某个阶段的某个或某些状态直接得到而不管之前这个状态是如何得到的-&gt;动态规划。<br>                  ——<a href="https://www.zhihu.com/question/23995189/answer/35429905" target="_blank" rel="noopener">知乎</a></p>
+</blockquote>
+<p>这一段话是描述这几种常用算法和状态之间的关系的精髓。需要仔细想想，此处就不再赘述。</p>
+<h2 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h2><p>实践出真知。在做了一定量的题目之后，会有自己的总结与归纳。动态规划的状态描述是个难点，一般都是用数组来保存状态。</p>
+<ul>
+<li>最常见的是数组的维度代表状态位置，比如一个二维数组中的某个值。</li>
+<li>数组的维度可以表示状态的维度，所有维度组合为当前状态。</li>
+<li>用pal[start][end]来存储状态，start和end分别代表位置。</li>
+<li>用数组的第一维表示迭代的层数，第二维表示位置.</li>
+</ul>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>刷了动态规划的题，直观的感受是，我如果知道要用DP解题，80%以上的Medium都可以解出来，但是hard估计也就50%不到。首先如何识别一道题是需要DP解题的问题？这估计只有在以后的实战中判断了。hard级别的动态规划难点也主要在它的不直观或者说需要多绕一个弯，可能根据题意本身解题会一头雾水，但是换个角度就豁然开朗，这需要的就不只是DP的掌握了。</p>
 
     </section>
     <footer class="post-footer">
@@ -69,20 +115,20 @@
 </section>
       <section class="share">
     <h4>Share this post</h4>
-    <a class="icon-twitter" href="http://twitter.com/share?url=http://yoursite.com/2018/07/19/动态规划实战/"
+    <a class="icon-twitter" href="http://twitter.com/share?url=http://lavaoxsea.com/2018/07/19/动态规划实战/"
        onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
         <span class="hidden">Twitter</span>
     </a>
-    <a class="icon-weibo" href="http://service.weibo.com/share/share.php?url=http://yoursite.com/2018/07/19/动态规划实战/"
+    <a class="icon-weibo" href="http://service.weibo.com/share/share.php?url=http://lavaoxsea.com/2018/07/19/动态规划实战/"
         onclick="window.open(this.href, 'weibo-share', 'width=550,height=235');return false;">
          <span class="">Weibo</span>
      </a>
     <!-- 
-    <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://yoursite.com/2018/07/19/动态规划实战/"
+    <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://lavaoxsea.com/2018/07/19/动态规划实战/"
        onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
         <span class="hidden">Facebook</span>
     </a>
-    <a class="icon-google-plus" href="https://plus.google.com/share?url=http://yoursite.com/2018/07/19/动态规划实战/"
+    <a class="icon-google-plus" href="https://plus.google.com/share?url=http://lavaoxsea.com/2018/07/19/动态规划实战/"
        onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
         <span class="hidden">Google+</span>
     </a> -->
@@ -90,6 +136,10 @@
     </footer>
   </article>
   <nav class="pagination" role="pagination">
+    
+    <a class="newer-posts" href="/2018/09/13/第四届阿里中间件性能挑战赛总结/">
+        ← 第四届阿里中间件性能挑战赛总结
+    </a>
     
     <span class="page-number">•</span>
     
@@ -125,7 +175,7 @@
   </div>
 </footer>
 
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+  <script src="//apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
 
 <script type="text/javascript" src="/js/jquery.fitvids.js"></script>
 <script type="text/javascript" src="/js/index.js"></script>

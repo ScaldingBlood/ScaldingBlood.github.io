@@ -22,6 +22,9 @@
   
 
   
+  
+    <link rel="shortcut icon" href="/images/favicon.png" type="image/x-icon" />
+  
   <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
   <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
 </head>
@@ -29,12 +32,14 @@
 
 <body class="post-template">
 
-  <header class="site-head"  style="background-image: url(//blog.ghost.org/content/images/2013/Nov/cover.png)" >
+  <header class="site-head">
     <div class="vertical">
         <div class="site-head-content inner">
-             <a class="blog-logo" href="/"><img src="/images/logo.jpeg" alt="Blog Logo"/></a> 
-            <h1 class="blog-title">Rock 'n' Roll will break your heart.</h1>
-            <h2 class="blog-description"></h2>
+            <a class="blog-logo" href="/">
+                 <img src="/images/logo.jpeg" alt="Blog Logo"/> 
+                <h1 class="blog-title">Rock 'n' Roll will break your heart.</h1>
+                <h2 class="blog-description"></h2>
+            </a>
         </div>
     </div>
 </header>
@@ -60,8 +65,9 @@
       <h2 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h2><blockquote>
 <p>Hexo 是一个快速、简洁且高效的博客框架。Hexo 使用 Markdown（或其他渲染引擎）解析文章，在几秒内，即可利用靓丽的主题生成静态网页。    –<a href="hexo文档 https://hexo.io/zh-cn/docs/index.html">hexo 文档</a></p>
 </blockquote>
-<p>hexo 基于<code>node.js</code>和<code>npm</code>,生成静态页面。对使用者而言高度封装，几乎不需要前端知识，各种已有主题又十分美观，可以说是个人博客的完美选择。</p>
-<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p>安装git</p>
+<p><img src="hexo_intro.png" alt="hexo"></p>
+<p><a href="https://hexo.io/zh-cn/" target="_blank" rel="noopener">hexo</a> 基于<code>node.js</code>和<code>npm</code>。它生成静态页面，对使用者而言高度封装，几乎不需要前端知识，各种已有主题又十分美观，而且切换也十分方便，可以说是个人博客的完美选择。</p>
+<h2 id="安装（MacOS）"><a href="#安装（MacOS）" class="headerlink" title="安装（MacOS）"></a>安装（MacOS）</h2><p>安装git</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">brew install git</span><br></pre></td></tr></table></figure>
 <hr>
 <p>安装npm<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget -qO- https://raw.github.com/creationix/nvm/master/install.sh | sh</span><br></pre></td></tr></table></figure><br>重启终端</p>
@@ -82,11 +88,10 @@
 </ul>
 <h2 id="基础使用"><a href="#基础使用" class="headerlink" title="基础使用"></a>基础使用</h2><p><code>hexo init &lt;folder&gt;</code> 在文件夹中初始化hexo<br><code>hexo new [layout] &lt;title&gt;</code> 新建文章，layout指draft或post，draft为草稿，post为发布的文章<br><code>hexo generator</code> 将markdown转为静态页面<br><code>hexo publish [layout] &lt;filename&gt;</code> 发表草稿，将draft中指定的文件转到post中<br><code>hexo server</code> 启动hexo服务器，默认端口4000，可以通过<code>-p</code>设置<br><code>hexo clean</code> 清除缓存文件和已经生成的静态文件<br><code>hexo list</code> 展示网站信息</p>
 <h2 id="标签插件"><a href="#标签插件" class="headerlink" title="标签插件"></a>标签插件</h2><p>包含大量非Markdown语法，不便迁移，尽量不使用。两个例子：</p>
-<h3 id="引用块"><a href="#引用块" class="headerlink" title="引用块"></a>引用块</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#123;% blockquote [author[, source]] [link] [source_link_title] %&#125;</span><br><span class="line">content</span><br><span class="line">&#123;% endblockquote %&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="代码块"><a href="#代码块" class="headerlink" title="代码块"></a>代码块</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#123;% codeblock [title] [lang:language] [url] [link text] %&#125;</span><br><span class="line">code snippet</span><br><span class="line">&#123;% endcodeblock %&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="主题"><a href="#主题" class="headerlink" title="主题"></a>主题</h2><p><a href="https://hexo.io/themes/" target="_blank" rel="noopener">官方主题页</a></p>
-<p>包含了主题展示和github跳转，按照github项目中README安装即可。</p>
-<p>本人使用的是<a href="https://github.com/kywk/hexo-theme-casper" target="_blank" rel="noopener">casper的修改版</a></p>
+<h4 id="引用块"><a href="#引用块" class="headerlink" title="引用块"></a>引用块</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#123;% blockquote [author[, source]] [link] [source_link_title] %&#125;</span><br><span class="line">content</span><br><span class="line">&#123;% endblockquote %&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="代码块"><a href="#代码块" class="headerlink" title="代码块"></a>代码块</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#123;% codeblock [title] [lang:language] [url] [link text] %&#125;</span><br><span class="line">code snippet</span><br><span class="line">&#123;% endcodeblock %&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="主题"><a href="#主题" class="headerlink" title="主题"></a>主题</h2><p><a href="https://hexo.io/themes/" target="_blank" rel="noopener">官方主题页</a>包含了主题展示和github跳转，按照github项目中README安装即可。</p>
+<p>本人使用的是<a href="https://github.com/kywk/hexo-theme-casper" target="_blank" rel="noopener">casper的修改版</a><br>所有和主题相关的文件夹都在themes中并且是可以自定义和修改的，主题目录下提供了_config.yaml文件。比如图标、logo、favicon等。此外，可以进一步通过修改js和css为你想要的样式。</p>
 <h2 id="资源文件夹"><a href="#资源文件夹" class="headerlink" title="资源文件夹"></a>资源文件夹</h2><p>如果你的Hexo项目中只有少量图片，那最简单的方法就是将它们放在 source/images 文件夹中。然后通过类似于 <code>![](/images/image.jpg)</code>的方法访问它们。</p>
 <p>对于那些想要更有规律地提供图片和其他资源以及想要将他们的资源分布在各个文章上的人来说，可以通过将 config.yml 文件中的 <code>post_asset_folder</code> 选项设为 true 来打开。</p>
 <h2 id="about页面"><a href="#about页面" class="headerlink" title="about页面"></a>about页面</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo new page about</span><br></pre></td></tr></table></figure>
@@ -97,16 +102,16 @@
 <h2 id="分享"><a href="#分享" class="headerlink" title="分享"></a>分享</h2><p>其实就是些<code>a</code>标签，该主题自带，不过是Twitter、脸书及Google的，我自己照着加了一个微博的。代码如下：<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;a <span class="class"><span class="keyword">class</span></span>=<span class="string">""</span> href=<span class="string">"http://service.weibo.com/share/share.php?url=&lt;%- permalink %&gt;"</span> onclick=<span class="string">"window.open(this.href, 'weibo-share', 'width=550,height=235');return false;"</span>&gt;</span><br><span class="line">    &lt;span <span class="class"><span class="keyword">class</span></span>=<span class="string">""</span>&gt;Weibo&lt;<span class="regexp">/span&gt;</span></span><br><span class="line"><span class="regexp">&lt;/</span>a&gt;</span><br></pre></td></tr></table></figure></p>
 <p>似乎baidushare也很常用，但是……有点丑。</p>
 <h2 id="搭建"><a href="#搭建" class="headerlink" title="搭建"></a>搭建</h2><p>铛铛铛～ 终于到激动人心的时候了，上 vps/github.io!</p>
-<h3 id="github-io"><a href="#github-io" class="headerlink" title="github.io"></a>github.io</h3><p>需要新建一个<username>.github.io 的仓库</username></p>
-<p>使用git部署，需要先安装插件：<br>···<br>npm install hexo-deployer-git –save<br>···</p>
+<h4 id="github-io"><a href="#github-io" class="headerlink" title="github.io"></a>github.io</h4><p>需要新建一个<username>.github.io 的仓库</username></p>
+<p>使用git部署，需要先安装插件：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install hexo-deployer-git --save</span><br></pre></td></tr></table></figure></p>
 <p>修改config.yml中的deploy为<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">deploy:</span><br><span class="line"> - type: git</span><br><span class="line">   repo: &lt;repo-name&gt;</span><br><span class="line">   branch: master</span><br></pre></td></tr></table></figure></p>
 <p>之后执行hexo deploy</p>
 <p>可以自行配置域名，在此不赘述</p>
-<h3 id="vps"><a href="#vps" class="headerlink" title="vps"></a>vps</h3><p>vps需要自己租 Vultr 或者 DigitalOcean 等，最低配价格为5刀/月</p>
-<p>部署其实也很简单…… 先安装一个Nginx，记得防火墙开启权限 大致是这样：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">apt-get install nginx</span><br><span class="line"></span><br><span class="line">ufw allow &quot;Nginx Full&quot;</span><br></pre></td></tr></table></figure></p>
+<h4 id="vps"><a href="#vps" class="headerlink" title="vps"></a>vps</h4><p>vps需要从 Vultr 或者 DigitalOcean 等供应商处租赁，常用的配置价格为5刀/月</p>
+<p>部署其实也很简单…… 先安装一个Nginx，记得防火墙开启权限 步骤大致如下（Ubuntu）：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">apt-get install nginx</span><br><span class="line"></span><br><span class="line">ufw allow &quot;Nginx Full&quot;</span><br></pre></td></tr></table></figure></p>
 <p>然后配置一下nginx，使之能够显示博客站点</p>
 <p>创建站点配置文件<code>vi /etc/nginx/conf.d/blog.conf</code></p>
-<p>内容：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">        listen 80;</span><br><span class="line">        listen [::]:80;</span><br><span class="line">        root /var/www/blog/html;</span><br><span class="line">        index index.html index.htm index.nginx-debian.html;</span><br><span class="line">        server_name paz-spiegel.top www.paz-spiegel.top;</span><br><span class="line">        access_log /var/log/nginx/blog_access.log;</span><br><span class="line">        error_log /var/log/nginx/blog_error.log;</span><br><span class="line">        error_page 404 /404.html;</span><br><span class="line">        location ~* ^.+\.(ico|gif|jpg|jpeg|png)$ &#123;</span><br><span class="line">          root /var/www/blog/html;</span><br><span class="line">          access_log   off;</span><br><span class="line">          expires      1d;</span><br><span class="line">        &#125;</span><br><span class="line">        location ~* ^.+\.(css|js|txt|xml|swf|wav)$ &#123;</span><br><span class="line">          root /var/www/blog/html;</span><br><span class="line">          access_log   off;</span><br><span class="line">          expires      10m;</span><br><span class="line">        &#125;</span><br><span class="line">        location / &#123;</span><br><span class="line">                try_files $uri $uri/ =404;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>内容：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">        listen 80;</span><br><span class="line">        listen [::]:80;</span><br><span class="line">        root /var/www/blog/html;</span><br><span class="line">        index index.html index.htm index.nginx-debian.html;</span><br><span class="line">        server_name ***;</span><br><span class="line">        access_log /var/log/nginx/blog_access.log;</span><br><span class="line">        error_log /var/log/nginx/blog_error.log;</span><br><span class="line">        error_page 404 /404.html;</span><br><span class="line">        location ~* ^.+\.(ico|gif|jpg|jpeg|png)$ &#123;</span><br><span class="line">          root /var/www/blog/html;</span><br><span class="line">          access_log   off;</span><br><span class="line">          expires      1d;</span><br><span class="line">        &#125;</span><br><span class="line">        location ~* ^.+\.(css|js|txt|xml|swf|wav)$ &#123;</span><br><span class="line">          root /var/www/blog/html;</span><br><span class="line">          access_log   off;</span><br><span class="line">          expires      10m;</span><br><span class="line">        &#125;</span><br><span class="line">        location / &#123;</span><br><span class="line">                try_files $uri $uri/ =404;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <p>之后配置git钩子 也就是一个空的git仓库，当本地的hexo推送给这个仓库时，会有个脚本执行自动拉取代码。</p>
 <p><code>mkdir -p /var/www/blog/html</code>路径用于存放站点</p>
 <p><code>git init --bare blog.git</code>创建空仓库</p>
@@ -114,7 +119,7 @@
 <p><code>vi post-receive</code>创建脚本</p>
 <p>内容如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/bash</span><br><span class="line">git --work-tree=/var/www/blog/html --git-dir=/var/www/blog/html/blog.git checkout -f</span><br></pre></td></tr></table></figure></p>
 <p>git checkout -f 会强制拉取代码</p>
-<p>本地配置config.yml的deploy部分：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">deploy:</span><br><span class="line">   type: git</span><br><span class="line">   repo: </span><br><span class="line">    vps: ssh://&lt;username&gt;@&lt;ip&gt;:&lt;port&gt;/var/www/path/to/blog.git</span><br><span class="line">   branch: master</span><br></pre></td></tr></table></figure></p>
+<p>本地配置config.yml的deploy部分：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">deploy:</span><br><span class="line">   type: git</span><br><span class="line">   repo: </span><br><span class="line">   vps: ssh://&lt;username&gt;@&lt;ip&gt;:&lt;port&gt;/var/www/path/to/blog.git</span><br><span class="line">   branch: master</span><br></pre></td></tr></table></figure></p>
 <p>这种方式可以配置ssh的端口，其中的username需要可以免密登陆vps。</p>
 <h2 id="404"><a href="#404" class="headerlink" title="404"></a>404</h2><p>首先需要创建一个自定义404页面，与about页相似</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo new page 404</span><br></pre></td></tr></table></figure>
@@ -141,20 +146,20 @@
 </section>
       <section class="share">
     <h4>Share this post</h4>
-    <a class="icon-twitter" href="http://twitter.com/share?url=http://yoursite.com/2018/07/15/使用hexo搭建Blog/"
+    <a class="icon-twitter" href="http://twitter.com/share?url=http://lavaoxsea.com/2018/07/15/使用hexo搭建Blog/"
        onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
         <span class="hidden">Twitter</span>
     </a>
-    <a class="icon-weibo" href="http://service.weibo.com/share/share.php?url=http://yoursite.com/2018/07/15/使用hexo搭建Blog/"
+    <a class="icon-weibo" href="http://service.weibo.com/share/share.php?url=http://lavaoxsea.com/2018/07/15/使用hexo搭建Blog/"
         onclick="window.open(this.href, 'weibo-share', 'width=550,height=235');return false;">
          <span class="">Weibo</span>
      </a>
     <!-- 
-    <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://yoursite.com/2018/07/15/使用hexo搭建Blog/"
+    <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://lavaoxsea.com/2018/07/15/使用hexo搭建Blog/"
        onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
         <span class="hidden">Facebook</span>
     </a>
-    <a class="icon-google-plus" href="https://plus.google.com/share?url=http://yoursite.com/2018/07/15/使用hexo搭建Blog/"
+    <a class="icon-google-plus" href="https://plus.google.com/share?url=http://lavaoxsea.com/2018/07/15/使用hexo搭建Blog/"
        onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
         <span class="hidden">Google+</span>
     </a> -->
@@ -164,7 +169,7 @@
   <nav class="pagination" role="pagination">
     
     <a class="newer-posts" href="/2018/07/19/动态规划实战/">
-        ← 动态规划实战
+        ← 动态规划初探
     </a>
     
     <span class="page-number">•</span>
@@ -197,7 +202,7 @@
   </div>
 </footer>
 
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+  <script src="//apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
 
 <script type="text/javascript" src="/js/jquery.fitvids.js"></script>
 <script type="text/javascript" src="/js/index.js"></script>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+  <title>第四届阿里中间件性能挑战赛总结 | Rock &#39;n&#39; Roll will break your heart.</title>
+  <meta name="description" content="" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="MobileOptimized" content="320" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" type="text/css" href="/css/screen.css" />
+  <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Noto+Serif:400,700,400italic|Open+Sans:700,400" />
+
+  <meta name="generator" content="Rock 'n' Roll will break your heart.">
+
+  
+  
+  <link rel="alternate" type="application/atom+xml" title="Atom 0.3" href="atom.xml">
+  
+  
+
+  
+  
+    <link rel="shortcut icon" href="/images/favicon.png" type="image/x-icon" />
+  
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+</head>
+
+
+<body class="post-template">
+
+  <header class="site-head">
+    <div class="vertical">
+        <div class="site-head-content inner">
+            <a class="blog-logo" href="/">
+                 <img src="/images/logo.jpeg" alt="Blog Logo"/> 
+                <h1 class="blog-title">Rock 'n' Roll will break your heart.</h1>
+                <h2 class="blog-description"></h2>
+            </a>
+        </div>
+    </div>
+</header>
+  
+
+<main class="content" role="main">
+  <article class="post">
+    <span class="post-meta">
+      <time datetime="2018-09-13T11:01:45.000Z" itemprop="datePublished">
+          2018-09-13
+      </time>
+    
+</span>
+    <h1 class="post-title">第四届阿里中间件性能挑战赛总结</h1>
+    <section class="post-content">
+      <h2 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h2><p><img src="logo.png" alt=""><br>上个学期抽空打了一下<a href="https://tianchi.aliyun.com/programming/introduction.htm?spm=5176.100066.0.0.6acd33afBcahZs&amp;raceId=231657" target="_blank" rel="noopener">阿里中间件的比赛</a>。作为少见的程序设计竞赛，还是有些收获的。最后的成绩如下：</p>
+<p><img src="result.png" alt=""><br>总体说起来马马虎虎吧，感觉和排行榜顶尖选手的差距还是很大的。后文也会说到他们的技术思路。</p>
+<h2 id="初赛"><a href="#初赛" class="headerlink" title="初赛"></a>初赛</h2><h4 id="题意分析"><a href="#题意分析" class="headerlink" title="题意分析"></a>题意分析</h4><p>赛题详情见<a href="https://code.aliyun.com/middlewarerace2018/docs?spm=5176.11409106.555.1.627f6668H7cbDv" target="_blank" rel="noopener">这里</a><br>题目描述非常长，而且复杂。这是第一个难关，要有耐心好好审题，理解要做什么。这里再简单描述下：<br>目标是实现一个Service Mesh，也就是在不改变服务本身的情况下，通过添加以 proxy 或 sidecar 形式部署的 Agent，实现服务的治理（服务注册、负载均衡等）。通过这种方式，所有进出服务的流量都会被Agent拦截，因此可以做到协议的转换，够使得基于不同技术框架和通讯协议建设的服务也可以实现互联互通。<br><img src="service-mesh-architecture.png" alt="service-mesh-architecture"></p>
+<p>系统架构如下：<br><img src="system-architecture.png" alt="system-architecture"><br>图中所有的服务都运行在Docker容器中。流程是 Consumer 通过 Consumer-Agent 在 etcd 注册服务，通过Dubbo协议进行RPC。Provider 会通过 Provider-Agent 在 etcd 中查找已经注册的 Consumer 服务并向其 Agent 发送RPC的请求。此外，Provider 还向外界暴露RPC调用接口提供调用。Consumer 的调用要做到负载均衡。以上，需要达到最高的qps。</p>
+<p>初赛最nice的地方是提供了一个Demo，让我们这些没见过上面很多技术的人可以大致先了解一下。事实上，我的大部分工作最开始都是基于这份demo。</p>
+<p><a href="https://code.aliyun.com/middlewarerace2018/agent-demo" target="_blank" rel="noopener">Agent示例</a><br><a href="https://code.aliyun.com/middlewarerace2018/services" target="_blank" rel="noopener">Provider 及 Consumer 服务</a></p>
+<p>其中官方提供的 Provider 和 Consumer 是不可以被修改的。它们都是基于Spring-boot的，逻辑较为简单。其中 Provider 提供了Dubbo的RPC服务，暴露了一个IHelloService接口：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">IHelloService</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">hash</span><span class="params">(String str)</span> <span class="keyword">throws</span> Exception</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>实现的hash方法如下<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">hash</span><span class="params">(String str)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> hashCode = str.hashCode();</span><br><span class="line">    logger.info(++count + <span class="string">"_"</span> + hashCode);</span><br><span class="line">    sleep(<span class="number">50</span>);</span><br><span class="line">    <span class="keyword">return</span> hashCode;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>每次调用线程睡眠50ms，模拟运行消耗。该服务需要使用Dubbo协议调用，除此以外不需要其他的Dubbo知识。</p>
+<p>Consumer 就像一个常见的Spring-boot服务，提供了一个控制器。随机生成了1024长度字符串。使用AsyncHttpClient异步的向 Provider-Agent 进行RPC的请求，得到返回值并和该字符串的hash值做比较。如果相同则返回值为OK的ResponseEntity，不同则返回值为ERROR的ResponseEntity。示例中还用到了SpringMVC中的异步返回，也就是返回DeferredResult实例。当值被赋给该实例时才会返回。此外AsyncHttpClient库提供了发送异步请求而不阻塞线程的方式，可以学习一下它的API，很实用。具体的函数如下：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RequestMapping</span>(value = <span class="string">"/invoke"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> DeferredResult&lt;ResponseEntity&gt; <span class="title">invoke</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    String str = RandomStringUtils.random(r.nextInt(<span class="number">1024</span>), <span class="keyword">true</span>, <span class="keyword">true</span>);</span><br><span class="line"></span><br><span class="line">    String url = <span class="string">"http://127.0.0.1:20000"</span>;</span><br><span class="line"></span><br><span class="line">    DeferredResult&lt;ResponseEntity&gt; result = <span class="keyword">new</span> DeferredResult&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    org.asynchttpclient.Request request = org.asynchttpclient.Dsl.post(url)</span><br><span class="line">            .addFormParam(<span class="string">"interface"</span>, <span class="string">"com.alibaba.dubbo.performance.demo.provider.IHelloService"</span>)</span><br><span class="line">            .addFormParam(<span class="string">"method"</span>, <span class="string">"hash"</span>)</span><br><span class="line">            .addFormParam(<span class="string">"parameterTypesString"</span>, <span class="string">"Ljava/lang/String;"</span>)</span><br><span class="line">            .addFormParam(<span class="string">"parameter"</span>, str)</span><br><span class="line">            .build();</span><br><span class="line"></span><br><span class="line">    ListenableFuture&lt;org.asynchttpclient.Response&gt; responseFuture = asyncHttpClient.executeRequest(request);</span><br><span class="line"></span><br><span class="line">    Runnable callback = () -&gt; &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">// 检查返回值是否正确,如果不正确返回500。有以下原因可能导致返回值不对:</span></span><br><span class="line">            <span class="comment">// 1. agent解析dubbo返回数据不对</span></span><br><span class="line">            <span class="comment">// 2. agent没有把request和dubbo的response对应起来</span></span><br><span class="line">            String value = responseFuture.get().getResponseBody();</span><br><span class="line">            <span class="keyword">if</span> (String.valueOf(str.hashCode()).equals(value))&#123;</span><br><span class="line">                result.setResult(ok);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                result.setResult(error);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">    responseFuture.addListener(callback, <span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>至此，题意也基本清晰了。我们需要实现的是两个Agent– Consumer-Agent 和 Provider-Agent。其中 Provider-Agent 负责接收 Provider 的请求，并通过 etcd 查找 Consumer 服务，从而向 Consumer-Agent 发送请求并接收返回，再将结果返回给Provider。 而 Consumer-Agent 负责向 etcd 注册，并接收来自 Provider-Agent 的请求，并向 Consumer 请求结果并返回，再返回给 Provider-Agent。<br>题目页面上有这么一个展示流程的表格：</p>
+<table><thead><tr><th>通讯环节</th><th>序列化协议</th><th>远程通讯协议</th><th>备注</th></tr></thead><tbody><tr><td>Client =&gt; Consumer</td><td>（无参数传递）</td><td>HTTP</td><td></td></tr><tr><td>Consumer =&gt; Consumer Aagent</td><td>FORM</td><td>HTTP</td><td></td></tr><tr><td>Consumer Agent =&gt; Provider Agent</td><td>FORM</td><td>HTTP</td><td>可根据需要自定义</td></tr><tr><td>Provider Agent =&gt; Provider</td><td>JSON</td><td>DUBBO</td><td></td></tr><tr><td>Provider =&gt; Provider Agent</td><td>JSON</td><td>DUBBO</td><td></td></tr><tr><td>Provider Agent =&gt; Consumer Agent</td><td>TEXT</td><td>HTTP</td><td>可以根据需要自定义</td></tr><tr><td>Consumer Agent =&gt; Consumer</td><td>TEXT</td><td>HTTP</td><td></td></tr><tr><td>Consumer =&gt; Client</td><td>TEXT</td><td>HTTP</td><td></td></tr></tbody></table>
+
+<h4 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h4><p>比赛所用到的环境都是基于Docker的，因为整体环境较为复杂而且需要做到能够在本地评测分数，当时搭建环境也花了一个晚上，所以这里也稍微介绍一下。</p>
+
+    </section>
+    <footer class="post-footer">
+      <section class="author">
+    <h4>paz</h4>
+    <p>Rock 'n' Roll will break your heart.</p>
+</section>
+
+<section class="author-info">
+    <a class="icon" href="https://github.com/ScaldingBlood"
+       onclick="window.open(this.href);return false;">
+        <span>Github</span>
+    </a>
+</section>
+      <section class="share">
+    <h4>Share this post</h4>
+    <a class="icon-twitter" href="http://twitter.com/share?url=http://lavaoxsea.com/2018/09/13/第四届阿里中间件性能挑战赛总结/"
+       onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+        <span class="hidden">Twitter</span>
+    </a>
+    <a class="icon-weibo" href="http://service.weibo.com/share/share.php?url=http://lavaoxsea.com/2018/09/13/第四届阿里中间件性能挑战赛总结/"
+        onclick="window.open(this.href, 'weibo-share', 'width=550,height=235');return false;">
+         <span class="">Weibo</span>
+     </a>
+    <!-- 
+    <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://lavaoxsea.com/2018/09/13/第四届阿里中间件性能挑战赛总结/"
+       onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+        <span class="hidden">Facebook</span>
+    </a>
+    <a class="icon-google-plus" href="https://plus.google.com/share?url=http://lavaoxsea.com/2018/09/13/第四届阿里中间件性能挑战赛总结/"
+       onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+        <span class="hidden">Google+</span>
+    </a> -->
+</section>
+    </footer>
+  </article>
+  <nav class="pagination" role="pagination">
+    
+    <span class="page-number">•</span>
+    
+    <a class="older-posts" href="/2018/07/19/动态规划实战/">
+        动态规划初探 →
+    </a>
+    
+</nav>
+  <div id="comment" class="comments-area">
+    <!-- <h1 class="title"><a href="#disqus_comments" name="disqus_comments">Comments</a></h1>
+
+     -->
+    <div id="vcomments"></div>
+    <script>
+        new Valine({
+            el: '#vcomments',
+            appId: 'ICvK93wM58afCFhIRoHUWBCd-gzGzoHsz',
+            appKey: 'qmM8S0zfhfSIot1Yf1d8qcnK'
+        })
+    </script>
+</div>
+</main>
+
+
+  
+<footer class="site-footer">
+  
+  <a class="subscribe icon-feed" href="atom.xml"><span class="tooltip">Subscribe!</span></a>
+  
+  <div class="inner">
+     <section class="copyright">All content copyright <a href="/">Rock 'n' Roll will break your heart.</a> &copy; 2014 &bull; All rights reserved.</section>
+     <section class="poweredby">Proudly published with <a class="icon-ghost" href="http://zespia.tw/hexo/">Hexo</a></section>
+  </div>
+</footer>
+
+  <script src="//apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+
+<script type="text/javascript" src="/js/jquery.fitvids.js"></script>
+<script type="text/javascript" src="/js/index.js"></script>
+
+
+
+
+
+
+</body>
+</html>
