@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+  <title>第一届POLARDB数据库性能大赛 | Rock &#39;n&#39; Roll will break your heart.</title>
+  <meta name="description" content="" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="MobileOptimized" content="320" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" type="text/css" href="/css/screen.css" />
+  <link rel="stylesheet" type="text/css" href="/fonts/google-font.css" />
+
+  <meta name="generator" content="Rock 'n' Roll will break your heart.">
+
+  
+  
+  <link rel="alternate" type="application/atom+xml" title="Atom 0.3" href="atom.xml">
+  
+  
+
+  
+  
+    <link rel="shortcut icon" href="/images/favicon.png" type="image/x-icon" />
+  
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src='/js/Valine.min.js'></script>
+</head>
+
+
+<body class="post-template">
+
+  <header class="site-head">
+    <div class="vertical">
+        <div class="site-head-content inner">
+            <a class="blog-logo" href="/">
+                 <img src="/images/logo.jpeg" alt="Blog Logo"/> 
+                <h1 class="blog-title">Rock 'n' Roll will break your heart.</h1>
+                <h2 class="blog-description"></h2>
+            </a>
+        </div>
+    </div>
+</header>
+  
+
+<main class="content" role="main">
+  <article class="post">
+    <span class="post-meta">
+      <time datetime="2019-03-06T02:44:24.000Z" itemprop="datePublished">
+          2019-03-06
+      </time>
+    
+</span>
+    <h1 class="post-title">第一届POLARDB数据库性能大赛</h1>
+    <section class="post-content">
+      <p><a href="https://code.aliyun.com/polar_race2018/competition_rules?spm=5176.12281978.0.0.a42a76d8AAIieZ&amp;accounttraceid=65e4da1d-b41b-4027-8805-d76009368ec6" target="_blank" rel="noopener">赛题</a>不是很复杂，但是有很多细节。我感觉总体难度还是比较大，我的成绩就是勉强跑出成绩的水平，文章主要以讲解dalao的思路为主。</p>
+<h3 id="题意分析"><a href="#题意分析" class="headerlink" title="题意分析"></a>题意分析</h3><p>实现一个简化、高效的kv存储引擎，支持Write、Read、Range接口。评测程序分为2个阶段：</p>
+<ol>
+<li>Recover正确性评测<br>此阶段评测程序会并发写入特定数据（key 8B、value 4KB）同时进行任意次kill -9来模拟进程意外退出（参赛引擎需要保证进程意外退出时数据持久化不丢失），接着重新打开DB，调用Read、Range接口来进行正确性校验</li>
+<li>性能评测<br> 随机写入：64个线程并发随机写入，每个线程使用Write各写100万次随机数据（key 8B、value 4KB）<br> 随机读取：64个线程并发随机读取，每个线程各使用Read读取100万次随机数据<br> 顺序读取：64个线程并发顺序读取，每个线程各使用Range*有序（增序）遍历全量数据2次</li>
+</ol>
+<p>顺序读取阶段除了对迭代出来每条的kv校验是否匹配外，还会额外校验是否严格递增，如不通过则终止，评测失败。<br>此外，题目限制了内存大小，C++为2G，Java为3G。这也成为题目的难点。</p>
+<h3 id="解题"><a href="#解题" class="headerlink" title="解题"></a>解题</h3><p>由于题目没有给测试代码，首先我先实现了一个测试类。分别测试写入、随机读和顺序读。写入时生成长度为4K的随机串，然后从中计算出8B的键。write操作结束后，将key添加到保存到文件。之后读校验之前将key读到内存里并随机从中取键值，读取出值后计算键值并与当前键值比对。顺序读也类似，按顺序校验值的同时也校验索引。<br>之后需要解决的是kill -9后可以恢复的问题。我参考了这篇文章：<a href="http://imushan.com/2018/06/18/java/language/Java%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E6%96%87%E4%BB%B6%E8%90%BD%E7%9B%98%EF%BC%9F/" target="_blank" rel="noopener">Java保证文件落盘</a>。但是这里题目的条件并没有说明断电，因此写入Page Cache不落盘就可以满足要求了。<br>为了将数据存到缓冲区中，又保证kill不丢失，我参考了主流数据库的策略。先将数据存到log中，落盘之后再删除log文件。log是同步写的。打开db时会先将log数据读入并写到db中。<br>为了满足range的要求，我设计了将数据排序的系统。通过ConcurrentSkipListMap来保存键值，因为内存无法保存所有数据，因此每达到1百万条消息后将skipListMap异步落盘，完成后会回调删除log文件。这时，可以保证map内的数据和落盘的数据是局部有序的。根据题目要求，读是在写完成之后并且会重新打开db。因此，我将全局的排序放到了重开db的这个阶段，排序方式就是建一个堆，然后打开刚才所有存储的map做输入流。最终构建出一个排序的key值列表，和对应文件及偏移量。<br>我觉得这套方案理论上是可行的，但是最终没有跑出成绩来，首先我写log的方式是很僵硬的，我需要等待64个线程的消息全部达到才执行一次写入，我也试过32个消息执行一次写入，但是效果也不好。并且频繁的创建文件，这里应该是阻塞了很多时间。其次，排序这个问题是很困扰我的地方。最开始我直接无脑顺序写，之后对索引排序，验证时跳读，但是耗时太长，跑不出结果。之后换成这种局部顺序的方式，不过我没有做缓存，在并发读的时候应该还是存在大量跳读，效果不好。</p>
+<h3 id="dalao解题"><a href="#dalao解题" class="headerlink" title="dalao解题"></a>dalao解题</h3><p><a href="https://www.cnkirito.moe/polardb-race/" target="_blank" rel="noopener">Java实现的系统</a>最终成绩21，我在简要讲讲我的理解。</p>
+
+    </section>
+    <footer class="post-footer">
+      <section class="author">
+    <h4>paz</h4>
+    <p>Rock 'n' Roll will break your heart.</p>
+</section>
+
+<section class="author-info">
+    <a class="icon" href="https://github.com/ScaldingBlood"
+       onclick="window.open(this.href);return false;">
+        <span>Github</span>
+    </a>
+</section>
+      <section class="share">
+    <h4>Share this post</h4>
+    <a class="icon-twitter" href="http://twitter.com/share?url=http://lavaoxsea.com/2019/03/06/第一届POLARDB数据库性能大赛/"
+       onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+        <span class="hidden">Twitter</span>
+    </a>
+    <a class="icon-weibo" href="http://service.weibo.com/share/share.php?url=http://lavaoxsea.com/2019/03/06/第一届POLARDB数据库性能大赛/"
+        onclick="window.open(this.href, 'weibo-share', 'width=550,height=235');return false;">
+         <span class="">Weibo</span>
+     </a>
+    <!-- 
+    <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://lavaoxsea.com/2019/03/06/第一届POLARDB数据库性能大赛/"
+       onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+        <span class="hidden">Facebook</span>
+    </a>
+    <a class="icon-google-plus" href="https://plus.google.com/share?url=http://lavaoxsea.com/2019/03/06/第一届POLARDB数据库性能大赛/"
+       onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+        <span class="hidden">Google+</span>
+    </a> -->
+</section>
+    </footer>
+  </article>
+  <nav class="pagination" role="pagination">
+    
+    <a class="newer-posts" href="/2019/03/06/基础复习！/">
+        ← 基础复习！
+    </a>
+    
+    <span class="page-number">•</span>
+    
+    <a class="older-posts" href="/2018/10/24/第四届阿里中间件性能挑战赛总结(复赛)/">
+        第四届阿里中间件性能挑战赛总结(复赛) →
+    </a>
+    
+</nav>
+  <div id="comment" class="comments-area">
+    <!-- <h1 class="title"><a href="#disqus_comments" name="disqus_comments">Comments</a></h1>
+
+     -->
+    <div id="vcomments"></div>
+    <script>
+        new Valine({
+            el: '#vcomments',
+            appId: 'ICvK93wM58afCFhIRoHUWBCd-gzGzoHsz',
+            appKey: 'qmM8S0zfhfSIot1Yf1d8qcnK'
+        })
+    </script>
+</div>
+</main>
+
+
+  
+<footer class="site-footer">
+  
+  <a class="subscribe icon-feed" href="atom.xml"><span class="tooltip">Subscribe!</span></a>
+  
+  <div class="inner">
+     <section class="copyright">All content copyright <a href="/">Rock 'n' Roll will break your heart.</a> &copy; 2014 &bull; All rights reserved.</section>
+     <section class="poweredby">Proudly published with <a class="icon-ghost" href="http://zespia.tw/hexo/">Hexo</a></section>
+  </div>
+</footer>
+
+  <script src="/js/jquery.min.js"></script>
+
+<script type="text/javascript" src="/js/jquery.fitvids.js"></script>
+<script type="text/javascript" src="/js/index.js"></script>
+
+<!--  -->
+
+
+
+
+</body>
+</html>

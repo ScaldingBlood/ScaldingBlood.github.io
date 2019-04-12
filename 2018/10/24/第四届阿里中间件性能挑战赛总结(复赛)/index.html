@@ -84,6 +84,7 @@
 <p>DataAccess也采用了一些特殊的设计，使用了<code>FileChannel</code>来负责读写文件。因为JVM限制为了4g，要利用剩余的4g空间可以使用堆外内存。通过ByteBuffer.allocateDirect来创建一个buffer，每个DataAccess都拥有一个这样的buffer。每次写入消息后，将消息写到buffer中去，当buffer满时再写入channel，重置buffer。读取则是通过channel的map方法从文件channel中映射一个MappedByteBuffer对象，在把消息通过消息长度解析出来。写入流和读取流是两个不同的channel，写入流通过append模式<code>FileOutputStream</code>获取，读取流通过r模式的RandomAccessFile获取。写入文件时要对文件加锁，读取则可以并发读。<br>次外，包含一个flush方法把buffer中的数据全部写入文件。</p>
 <p>最后这套流程并不能跑出结果……因为4g内存爆了，直接抛出OutOfMemory错误。不过我当时调整本地测试代码的参数到题目要求是可以跑出结果的……所以一直没有看出问题在哪里，直到我有次错误的把锁加在put方法上，竟然跑出结果了……猜测是因为写入时间已经达到最大而消息还未全部写入，直接进入检索和校验阶段。最终tps为287266.3，就是这个结果勉强让我有个名次……实际上前40的团队已经有一百万的结果，而前十更是怒超2,000,000。其实可以简单算一下，4g内存对我这套流程肯定是不够用的。假设FILE_NUM为1000，MSG_LIST_LEN为50。也就是说索引的记录数为 2,000,000,000 / 50 等于 40,000,000条，一条索引所占内存大约为32bytes，总共约占1.28G。而list中消息的数量为1,000,000 * 50，乘以大小50 + 4bytes，总共约占2.7G。再加上1,000,000个队列名，此时加起来肯定已经超过4g了。我对JVM不是很熟，应该还是少算了一些内存消耗，赛后我感觉主要的一个问题是没有做消息的压缩和解压，压缩过的消息应该能省下不少内存。</p>
 <h3 id="赛后"><a href="#赛后" class="headerlink" title="赛后"></a>赛后</h3><p>事实上这次复赛我做的稀烂……而且时间比较紧也没法临时去学，只能赛后再总结学习，还是有很多收获的。</p>
+<p><a href="https://mp.weixin.qq.com/s?__biz=MzIwMzY1OTU1NQ==&amp;mid=2247484378&amp;idx=1&amp;sn=1c26663f4c7f1948f8963324356381a3&amp;chksm=96cd4396a1baca8011e0fcef67d182b87aea3fc5323dc1f01fd70f8bb1baba890316bb4bbf58&amp;mpshare=1&amp;scene=1&amp;srcid=0803v2vPPHXvvqjIk7wm5a7C&amp;pass_ticket=7W5zWBa%2F%2BvMoZ%2FofB0ZBRLkzgrHvLM6I44wWI3e40%2Fnvc6yCgvGd1lIDGdOA55wM#rd" target="_blank" rel="noopener">第五名思路</a>，有点复杂，简单讲解下：<br>有N个桶，每个桶对应一个文件，将队列名hash取模后确定桶。并把M个队列的消息merge为一个group作为存储单元，当大小达到16k时进行写入，写入之前对队列排序，使一个队列内的内容按序相邻。<br>设计了两级索引L1和L2，都按时间顺序存放。L2对应一个block，记录了block在文件内的偏移，block大小和每个队列距离block起始位置的偏移。L1对应16个L2索引，记录了存放文件和block内每个队列的起始序号。<br>异步flush：采用RingBuffer接收block块，使用AIO对多个block块进行Batch刷盘，减少IO Copy的次数。<br>读取：二分查找+预读。建立一个缓存结构，类似RingBuffer，buffer与L2索引双向绑定，判断是否可用。</p>
 <p>java IO: JavaAPI中存在三种方式，基于字节流的方式（IOStream），基于buffer的方式（FileChannel），基于Mmap（MapppedByteBuffer）。基于字节的方式是最原始的方式，效率不高。而使用channel可以以buffer为块进行IO操作，和操作系统对磁盘的IO非常相似，此外buffer可以申请堆外内存，减少gc次数。而且可以避免内存的堆内堆外复制。而mmap则会在文件大小为1-1.5G的情况下发挥出最佳性能，它是基于虚拟内存将对文件的操作映射到磁盘上。但是缺点是释放较为复杂而且其使用的虚拟内存不好控制。<br>此外，通过使用Unsafe的方式，java也可以越过page cache来直接操作文件，也就是directIO。<br><img src="linux-io.png" alt="linux-io"></p>
 <p>ssd: ssd需要以4k字节的整数倍进行IO才能获取最大的性能。比赛提供的ssd的性能参考：<br><img src="ssd.png" alt="ssd"><br>因此，这里为了达到最高性能，至少应该以16kb为buffer大小单位进行磁盘读写。</p>
 <p>异步读写：在程序中IO不应该阻塞逻辑线程。这也是很关键的一点。这里可以应用一个生产者消费者魔性，通过一个blockingqueue在异步IO线程和逻辑线程进行交互。</p>
@@ -152,6 +153,10 @@
     </footer>
   </article>
   <nav class="pagination" role="pagination">
+    
+    <a class="newer-posts" href="/2019/03/06/第一届POLARDB数据库性能大赛/">
+        ← 第一届POLARDB数据库性能大赛
+    </a>
     
     <span class="page-number">•</span>
     
