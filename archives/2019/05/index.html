@@ -4,7 +4,7 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
-  <title>Archives: 2019/3 | Rock &#39;n&#39; Roll will break your heart.</title>
+  <title>Archives: 2019/5 | Rock &#39;n&#39; Roll will break your heart.</title>
   <meta name="description" content="" />
   <meta name="HandheldFriendly" content="True" />
   <meta name="MobileOptimized" content="320" />
@@ -49,58 +49,24 @@
   <article class="post">
     <header class="post-header">
       <span class="post-meta">
-      <time datetime="2019-03-06T08:24:21.000Z" itemprop="datePublished">
-          2019-03-06
+      <time datetime="2019-05-08T13:37:08.000Z" itemprop="datePublished">
+          2019-05-08
       </time>
     
 </span>
-      <h2 class="post-title"><a href="/2019/03/06/基础复习！/">基础复习！</a></h2>
+      <h2 class="post-title"><a href="/2019/05/08/Apache工具类源码阅读/">Apache工具类源码阅读</a></h2>
     </header>
     <section class="post-excerpt">
       <p>
       
-        OS进程线程协程
-程序是一组指令的集合，它静态存储在磁盘
-进程是程序运行的一个实例，进程是分配资源的基本单位
-线程使操作系统进行任务调度的最小单元
-线程共享一个虚拟内存空间及其中资源
-
-
-协程是为非抢占式多任务产生子程序的计算机程序组件，协程允许不同入口点在不同位置暂停或开始执行程序
-协没有线程的上下文切换消耗。协程的调度切换是用户手动切换的,因此更加灵活,因此又叫用户空间线程.
-原子操作性。由于协程是用户调度的，所以不会出现执行一半的
+        Intro常用的有commons-lang3 commons-io commons-collections，工具类并没有复杂的结构，阅读起来简单。很适合学习优秀的代码习惯和细节。文中简要挑一些类说明。
+commons-lang3这个包主要扩展了java.lang，提供一些常用操作。
+StringUtilsString是不可变的，因此对String的修改操作都是返回新建的字符串。此外，类中用到了需要变长参数，如isAnyEmpty(fin
       
       </p>
       
       <p>
-          <a href="/2019/03/06/基础复习！/" class="excerpt-link">Read More...</a>
-      </p>
-      
-    </section>
-  </article>
-  
-  <article class="post">
-    <header class="post-header">
-      <span class="post-meta">
-      <time datetime="2019-03-06T02:44:24.000Z" itemprop="datePublished">
-          2019-03-06
-      </time>
-    
-</span>
-      <h2 class="post-title"><a href="/2019/03/06/第一届POLARDB数据库性能大赛/">第一届POLARDB数据库性能大赛</a></h2>
-    </header>
-    <section class="post-excerpt">
-      <p>
-      
-        赛题不是很复杂，但是有很多细节。我感觉总体难度还是比较大，我的成绩就是勉强跑出成绩的水平，文章主要以讲解dalao的思路为主。
-题意分析实现一个简化、高效的kv存储引擎，支持Write、Read、Range接口。评测程序分为2个阶段：
-
-Recover正确性评测此阶段评测程序会并发写入特定数据（key 8B、value 4KB）同时进行任意次kill -9来模拟进程意外退出（参赛引擎需要保证进程意外退出时数据持久化不丢失），接着重新打开
-      
-      </p>
-      
-      <p>
-          <a href="/2019/03/06/第一届POLARDB数据库性能大赛/" class="excerpt-link">Read More...</a>
+          <a href="/2019/05/08/Apache工具类源码阅读/" class="excerpt-link">Read More...</a>
       </p>
       
     </section>

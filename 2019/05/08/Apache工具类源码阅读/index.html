@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+  <title>Apache工具类源码阅读 | Rock &#39;n&#39; Roll will break your heart.</title>
+  <meta name="description" content="" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="MobileOptimized" content="320" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" type="text/css" href="/css/screen.css" />
+  <link rel="stylesheet" type="text/css" href="/fonts/google-font.css" />
+
+  <meta name="generator" content="Rock 'n' Roll will break your heart.">
+
+  
+  
+  <link rel="alternate" type="application/atom+xml" title="Atom 0.3" href="atom.xml">
+  
+  
+
+  
+  
+    <link rel="shortcut icon" href="/images/favicon.png" type="image/x-icon" />
+  
+  <script src="/js/av-min.js"></script>
+  <script src='/js/Valine.min.js'></script>
+</head>
+
+
+<body class="post-template">
+
+  <header class="site-head">
+    <div class="vertical">
+        <div class="site-head-content inner">
+            <a class="blog-logo" href="/">
+                 <img src="/images/logo.jpeg" alt="Blog Logo"/> 
+                <h1 class="blog-title">Rock 'n' Roll will break your heart.</h1>
+                <h2 class="blog-description"></h2>
+            </a>
+        </div>
+    </div>
+</header>
+  
+
+<main class="content" role="main">
+  <article class="post">
+    <span class="post-meta">
+      <time datetime="2019-05-08T13:37:08.000Z" itemprop="datePublished">
+          2019-05-08
+      </time>
+    
+</span>
+    <h1 class="post-title">Apache工具类源码阅读</h1>
+    <section class="post-content">
+      <h2 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h2><p>常用的有commons-lang3 commons-io commons-collections，工具类并没有复杂的结构，阅读起来简单。很适合学习优秀的代码习惯和细节。文中简要挑一些类说明。</p>
+<h2 id="commons-lang3"><a href="#commons-lang3" class="headerlink" title="commons-lang3"></a>commons-lang3</h2><p>这个包主要扩展了java.lang，提供一些常用操作。</p>
+<h4 id="StringUtils"><a href="#StringUtils" class="headerlink" title="StringUtils"></a>StringUtils</h4><p><code>String</code>是不可变的，因此对String的修改操作都是返回新建的字符串。此外，类中用到了需要变长参数，如<code>isAnyEmpty(final CharSequence... css)</code>，可以避免调用时需要创建数组或者List。本质上是一个语法糖，由调用时创建数组传入。</p>
+<h5 id="去除"><a href="#去除" class="headerlink" title="去除"></a>去除</h5><ul>
+<li>trim </li>
+<li>truncate </li>
+<li>strip</li>
+</ul>
+<p>传入目标str和stripStr，将str头尾中在stripStr中出现的字符去除，stripStr为null默认去除空格。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">stripStart</span><span class="params">(<span class="keyword">final</span> String str, <span class="keyword">final</span> String stripChars)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> strLen; <span class="comment">// str长度</span></span><br><span class="line">    <span class="keyword">if</span> (str == <span class="keyword">null</span> || (strLen = str.length()) == <span class="number">0</span>) &#123; <span class="comment">// 判断时赋值</span></span><br><span class="line">        <span class="keyword">return</span> str;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">int</span> start = <span class="number">0</span>; <span class="comment">// 第一个不在stripChars中的字符</span></span><br><span class="line">    <span class="keyword">if</span> (stripChars == <span class="keyword">null</span>) &#123; <span class="comment">// 去除空格的情况</span></span><br><span class="line">        <span class="keyword">while</span> (start != strLen &amp;&amp; Character.isWhitespace(str.charAt(start))) &#123;</span><br><span class="line">            start++;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (stripChars.isEmpty()) &#123; <span class="comment">// 不去除。没有这个判断也可以执行，用于避免搜一遍字符串。</span></span><br><span class="line">        <span class="keyword">return</span> str;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">while</span> (start != strLen &amp;&amp; stripChars.indexOf(str.charAt(start)) != INDEX_NOT_FOUND) &#123;</span><br><span class="line">            start++;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> str.substring(start);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h5 id="比较"><a href="#比较" class="headerlink" title="比较"></a>比较</h5><ul>
+<li>equals</li>
+<li>compare</li>
+</ul>
+<p>都是传入两个或以上的字符串比较，考虑了空和null的情况。之后调用原生api。</p>
+<h5 id="查找"><a href="#查找" class="headerlink" title="查找"></a>查找</h5><ul>
+<li>indexOf</li>
+<li>ordinalIndexOf</li>
+<li>contains</li>
+<li>indexOfAnyBut</li>
+<li>containsAny</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 查找出现第ordinal次searchStr的位置</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">ordinalIndexOf</span><span class="params">(<span class="keyword">final</span> CharSequence str, <span class="keyword">final</span> CharSequence searchStr, <span class="keyword">final</span> <span class="keyword">int</span> ordinal, <span class="keyword">final</span> <span class="keyword">boolean</span> lastIndex)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (str == <span class="keyword">null</span> || searchStr == <span class="keyword">null</span> || ordinal &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> INDEX_NOT_FOUND; <span class="comment">// -1</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (searchStr.length() == <span class="number">0</span>) &#123; <span class="comment">// 查找的串为空</span></span><br><span class="line">        <span class="keyword">return</span> lastIndex ? str.length() : <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">int</span> found = <span class="number">0</span>;</span><br><span class="line">    <span class="comment">// set the initial index beyond the end of the string</span></span><br><span class="line">    <span class="comment">// this is to allow for the initial index decrement/increment</span></span><br><span class="line">    <span class="keyword">int</span> index = lastIndex ? str.length() : INDEX_NOT_FOUND;</span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (lastIndex) &#123;</span><br><span class="line">            index = CharSequenceUtils.lastIndexOf(str, searchStr, index - <span class="number">1</span>); <span class="comment">// step backwards thru string</span></span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            index = CharSequenceUtils.indexOf(str, searchStr, index + <span class="number">1</span>); <span class="comment">// step forwards through string</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (index &lt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> index; <span class="comment">// 没找到or数量不够</span></span><br><span class="line">        &#125;</span><br><span class="line">        found++;</span><br><span class="line">    &#125; <span class="keyword">while</span> (found &lt; ordinal);</span><br><span class="line">    <span class="keyword">return</span> index;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="子串-修改"><a href="#子串-修改" class="headerlink" title="子串/修改"></a>子串/修改</h5><ul>
+<li>substring</li>
+<li>left / mid / right</li>
+<li>substringBefore / substringAfter / substringBetween</li>
+<li>split</li>
+<li>join</li>
+<li>removeStart</li>
+<li>replace</li>
+<li>replaceChars</li>
+<li>repeat</li>
+<li>rotate</li>
+<li>reverse</li>
+<li>abbreviate</li>
+<li>wrap</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> String[] splitByWholeSeparatorWorker(</span><br><span class="line">        <span class="keyword">final</span> String str, <span class="keyword">final</span> String separator, <span class="keyword">final</span> <span class="keyword">int</span> max, <span class="keyword">final</span> <span class="keyword">boolean</span> preserveAllTokens) &#123;</span><br><span class="line">    <span class="comment">//... null空判断省略</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">int</span> separatorLength = separator.length();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> ArrayList&lt;String&gt; substrings = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">    <span class="keyword">int</span> numberOfSubstrings = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> beg = <span class="number">0</span>; <span class="comment">// 开始位置标记</span></span><br><span class="line">    <span class="keyword">int</span> end = <span class="number">0</span>; <span class="comment">// 结束位置标记</span></span><br><span class="line">    <span class="keyword">while</span> (end &lt; len) &#123;</span><br><span class="line">        end = str.indexOf(separator, beg);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (end &gt; -<span class="number">1</span>) &#123; <span class="comment">// 找到</span></span><br><span class="line">            <span class="keyword">if</span> (end &gt; beg) &#123; <span class="comment">// ！begin是否等于end，也即处理两个speratorStr相连</span></span><br><span class="line">                numberOfSubstrings += <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (numberOfSubstrings == max) &#123; <span class="comment">// 数量达到max，子串取到尾</span></span><br><span class="line">                    end = len;</span><br><span class="line">                    substrings.add(str.substring(beg));</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    substrings.add(str.substring(beg, end));</span><br><span class="line">                    beg = end + separatorLength; <span class="comment">// 下次搜素起始位置</span></span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="comment">// We found a consecutive occurrence of the separator, so skip it.</span></span><br><span class="line">                <span class="keyword">if</span> (preserveAllTokens) &#123; <span class="comment">// 保留两个相连speartorStr之间的空串EMPTY("")</span></span><br><span class="line">                    numberOfSubstrings += <span class="number">1</span>;</span><br><span class="line">                    <span class="keyword">if</span> (numberOfSubstrings == max) &#123;</span><br><span class="line">                        end = len;</span><br><span class="line">                        substrings.add(str.substring(beg));</span><br><span class="line">                    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                        substrings.add(EMPTY);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">                beg = end + separatorLength;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// String.substring( beg ) goes from 'beg' to the end of the String.</span></span><br><span class="line">            substrings.add(str.substring(beg));</span><br><span class="line">            end = len;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> substrings.toArray(<span class="keyword">new</span> String[substrings.size()]); <span class="comment">// list转数组方式</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>p.s 我感觉splitByWholeSeparatorWorker和splitWorker的功能一样啊……</p>
+<h4 id="ArrayUtils"><a href="#ArrayUtils" class="headerlink" title="ArrayUtils"></a>ArrayUtils</h4><ul>
+<li>toString<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">toString</span><span class="params">(<span class="keyword">final</span> Object array, <span class="keyword">final</span> String stringIfNull)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (array == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> stringIfNull;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> ToStringBuilder(array, ToStringStyle.SIMPLE_STYLE).append(array).toString();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>方法很简单，但是逻辑很有意思。每次都会创建一个<code>ToStringBuilder</code>，其数组元素的组合依赖<code>ToStringStyle</code>，包括字符串开头结尾和连接等，具体有很多。ToStringStyle也提供了一些常用组合的现成静态类。<code>append</code>方法最终会调用<code>ToStringStyle</code>的<code>ToStringStyle</code>方法，这里有个trick，为了防止数组循环调用appendInternal，<code>ToStringStyle</code>中维持了一个<code>ThreadLocal&lt;WeakHashMap&lt;Object, Object&gt;&gt;</code>。每次执行<br><code>ToStringStyle</code>前需要先检查是否注册了array对象，未注册需先注册，即往WeakHashMap中put。put的参数为arry和null。这个ThreadLocal被private static修饰，保证了ThreadLocal内存不会泄漏并使map存放多个线程的array。WeakHashMap则可以使退出调用的array可以被垃圾回收，因为value为null，所以保证了WeakHashMap也不会发生内存泄漏。事实上在方法调用完成后会主动调用unregister把map中的array给remove掉，因此我觉得可能这里weakhaspmap意义不大。</p>
+
+    </section>
+    <footer class="post-footer">
+      <section class="author">
+    <h4>paz</h4>
+    <p>Rock 'n' Roll will break your heart.</p>
+</section>
+
+<section class="author-info">
+    <a class="icon" href="https://github.com/ScaldingBlood"
+       onclick="window.open(this.href);return false;">
+        <span>Github</span>
+    </a>
+</section>
+      <section class="share">
+    <h4>Share this post</h4>
+    <a class="icon-twitter" href="http://twitter.com/share?url=http://lavaoxsea.com/2019/05/08/Apache工具类源码阅读/"
+       onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+        <span class="hidden">Twitter</span>
+    </a>
+    <a class="icon-weibo" href="http://service.weibo.com/share/share.php?url=http://lavaoxsea.com/2019/05/08/Apache工具类源码阅读/"
+        onclick="window.open(this.href, 'weibo-share', 'width=550,height=235');return false;">
+         <span class="">Weibo</span>
+     </a>
+    <!-- 
+    <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://lavaoxsea.com/2019/05/08/Apache工具类源码阅读/"
+       onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+        <span class="hidden">Facebook</span>
+    </a>
+    <a class="icon-google-plus" href="https://plus.google.com/share?url=http://lavaoxsea.com/2019/05/08/Apache工具类源码阅读/"
+       onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+        <span class="hidden">Google+</span>
+    </a> -->
+</section>
+    </footer>
+  </article>
+  <nav class="pagination" role="pagination">
+    
+    <a class="newer-posts" href="/2019/07/27/第五届阿里中间件性能挑战赛总结/">
+        ← 第五届阿里中间件性能挑战赛总结
+    </a>
+    
+    <span class="page-number">•</span>
+    
+    <a class="older-posts" href="/2019/03/06/基础复习！/">
+        基础复习！ →
+    </a>
+    
+</nav>
+  <div id="comment" class="comments-area">
+    <!-- <h1 class="title"><a href="#disqus_comments" name="disqus_comments">Comments</a></h1>
+
+     -->
+    <div id="vcomments"></div>
+    <script>
+        new Valine({
+            el: '#vcomments',
+            appId: 'ICvK93wM58afCFhIRoHUWBCd-gzGzoHsz',
+            appKey: 'qmM8S0zfhfSIot1Yf1d8qcnK'
+        })
+    </script>
+</div>
+</main>
+
+
+  
+<footer class="site-footer">
+  
+  <a class="subscribe icon-feed" href="atom.xml"><span class="tooltip">Subscribe!</span></a>
+  
+  <div class="inner">
+     <section class="copyright">All content copyright <a href="/">Rock 'n' Roll will break your heart.</a> &copy; 2014 &bull; All rights reserved.</section>
+     <section class="poweredby">Proudly published with <a class="icon-ghost" href="http://zespia.tw/hexo/">Hexo</a></section>
+  </div>
+</footer>
+
+  <script src="/js/jquery.min.js"></script>
+
+<script type="text/javascript" src="/js/jquery.fitvids.js"></script>
+<script type="text/javascript" src="/js/index.js"></script>
+
+<!--  -->
+
+
+
+
+</body>
+</html>

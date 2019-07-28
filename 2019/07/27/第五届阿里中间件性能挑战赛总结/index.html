@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+  <title>第五届阿里中间件性能挑战赛总结 | Rock &#39;n&#39; Roll will break your heart.</title>
+  <meta name="description" content="" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="MobileOptimized" content="320" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" type="text/css" href="/css/screen.css" />
+  <link rel="stylesheet" type="text/css" href="/fonts/google-font.css" />
+
+  <meta name="generator" content="Rock 'n' Roll will break your heart.">
+
+  
+  
+  <link rel="alternate" type="application/atom+xml" title="Atom 0.3" href="atom.xml">
+  
+  
+
+  
+  
+    <link rel="shortcut icon" href="/images/favicon.png" type="image/x-icon" />
+  
+  <script src="/js/av-min.js"></script>
+  <script src='/js/Valine.min.js'></script>
+</head>
+
+
+<body class="post-template">
+
+  <header class="site-head">
+    <div class="vertical">
+        <div class="site-head-content inner">
+            <a class="blog-logo" href="/">
+                 <img src="/images/logo.jpeg" alt="Blog Logo"/> 
+                <h1 class="blog-title">Rock 'n' Roll will break your heart.</h1>
+                <h2 class="blog-description"></h2>
+            </a>
+        </div>
+    </div>
+</header>
+  
+
+<main class="content" role="main">
+  <article class="post">
+    <span class="post-meta">
+      <time datetime="2019-07-26T17:07:24.000Z" itemprop="datePublished">
+          2019-07-27
+      </time>
+    
+</span>
+    <h1 class="post-title">第五届阿里中间件性能挑战赛总结</h1>
+    <section class="post-content">
+      <p><img src="logo.png" alt=""></p>
+<h3 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h3><p>第五届中间件比赛也准时开始了。这次初赛的<a href="https://tianchi.aliyun.com/competition/entrance/231714/information" target="_blank" rel="noopener">题目</a>是要设计一个负载均衡的服务，提供给dubbo进行RPC的调用。初赛其实也花了不少时间，最后成绩也很不理想。其实是到了最后一天最后一次尝试进的复赛，非常巧合了可以说。我的架构也不是最优的，这里仅供参考，也会有大佬们的思路介绍。代码已经推到我的(github仓库)[<a href="https://github.com/ScaldingBlood/ali-competition-adaptive-loadbalance]中。" target="_blank" rel="noopener">https://github.com/ScaldingBlood/ali-competition-adaptive-loadbalance]中。</a></p>
+<h3 id="题意分析"><a href="#题意分析" class="headerlink" title="题意分析"></a>题意分析</h3><p>简单描述一下。评测给我们提供了三台硬件配置不同的服务器，并且分别在上面提供了RPC接口。其中每个服务器上Dubbo的线程池大小是不同的，当挤压的请求数量超过负载则会跑出线程池满的异常并作为一个失败请求。<br>此外为了模拟动态变化的服务能力，每个dubbo服务都做了最大并发量的限制并且消息的消费时间也是动态变化的，每一段时间变化一次。其中最大并发数小于线程池的大小，它会限制同时能够处理请求的数量并使多剩余的请求进入队列排队。而消费时间服从指数分布，变化的是其期望值。<br>目标是由wrk向在另一台服务器压测，依据成功请求数进行排名。压测模拟1024个连接同时发请求。</p>
+<h3 id="解题"><a href="#解题" class="headerlink" title="解题"></a>解题</h3><p>事实上在题目发出不久后，官方就发了一版题意分析，其中提到了三个待解决的问题：</p>
+<ul>
+<li>如何对服务进行容量评估</li>
+<li>如果应用评估结果，即如何维护provider对应的服务状态，又如何进行决策</li>
+<li>辅助接口的利用</li>
+</ul>
+<p>以上其实也就是本题的核心，我简单讲解一下我的思路：</p>
+<h5 id="辅助接口"><a href="#辅助接口" class="headerlink" title="辅助接口"></a>辅助接口</h5><p>这里借助了dubbo的底层实现，实现的功能是服务端可以向客户端发起回调。实现的逻辑是客户端，即这里的gateway，向服务端，即这里的provider提供一个<code>CallbackListener</code>的接口，客户端可以通过其中的<code>receiveServerMsg</code>处理收到回调的逻辑。而服务端则需要实现<code>CallbackServiceImpl</code>接口，通过<code>addListener</code>获取客户端的stub，从而执行回调逻辑。<br>这个设计很巧妙并且实用，这里我们直接拿过来用就可以了。官方给了一个示例，用Timer每5秒回调一次provider。这里回调具体的用法需要和架构实现相符，之后再讨论。</p>
+<h5 id="容量评估"><a href="#容量评估" class="headerlink" title="容量评估"></a>容量评估</h5><p>这里的容量评估其实包括两个方面，一方面是provider能够提供的负载能力的评估，另一方面是provider当前消费消息能力的评估。</p>
+<h6 id="统计服务端负载情况"><a href="#统计服务端负载情况" class="headerlink" title="统计服务端负载情况"></a>统计服务端负载情况</h6><p>在每个provider上运行的dubbo示例都有最大线程数限制，一旦把接收消息的数量超过最大线程数，就会把provider打挂。因此需要在consumer端做流量控制的处理，当然在provier中也提供了一个用于限流的接口，但是它会将这个请求变为一个失败请求，因此这里考虑在consumer做限流回报更高。</p>
+<p>这里我参考了provider控制最大并发数的实现，利用信号量去实现。信号量基于AQS实现，是一种高效控制资源的工具。简单来说，当接收到请求，获取一个信号量，而返回响应的时候进行释放。题目在consumer端提供了过滤器接口，但是最初我不知道可以从过滤器中判断是发向了那个provider，所以设计了一个批量release的方案。<br>具体来说，在gateway每次向provider发送请求之后就获取一个信号量，然后provider处理完请求后，会累计处理完请求的数量，每当数量达到BATCH_SIZE后，会回调gateway释放BATCH_SIZE个信号量并将处理完请求的数量置0。这里批量释放信号量的做法，有个明显的好处，可以减少释放时的线程同步造成的阻塞，但也会造成一个有些隐蔽的问题。当gateway收到不满一个BATCH_SIZE数量的消息时，它不会释放这些信号量，也就是说，gateway端如果有新的请求打进来，provider其实已经可以处理这些请求了，但是由于信号量没有被释放，因此阻塞住了，从而导致整体性能的下跌。</p>
+<p>当使用gateway的过滤器来执行信号量的释放后，以上问题就已经解决了，但是由于信号量可能存在大量的并发操作，也会导致性能下跌。解决方案是使用AtomicInteger来统计连接数。但是AtomicInteger也存在无法控制最大并行数的问题，可以理解为信号量用完后无法阻塞的问题，在代码中添加一个while死循环来处理没有可用线程时的等待。但是这个策略本身似乎仍不能绝对保证不超过最大并行数，需要之后配合调用策略使之成立。</p>
+<h6 id="评估服务端处理消息能力"><a href="#评估服务端处理消息能力" class="headerlink" title="评估服务端处理消息能力"></a>评估服务端处理消息能力</h6><p>处理消息的能力由两方面决定，一方面是当前provider处理消息耗时的期望，另一方面是当前provider等待消息的数量。第一个方面比较好理解，因为消息是服从指数分布的，而这个分布的期望是动态变化的，与硬件配置、最大并发量和最大线程数都不相关。而第二个等待消息的数量则是说，由于最大并发数限制但是没有超过最大线程数而进入队列等待的消息的数量，这些消息会等当前处理中的消息处理完之后在进行处理，也可以认为它的处理时间是未等待消息的两倍。</p>
+<p>由于我们无法直接获取到当前的配置，因此需要自行评估。一个直观的前提条件是需要统计一条消息的执行时间，在provider端也有一个过滤器，把消息放到Map中，统计进入和取出的时间差就可以作为这条消息消费的耗时。由于消息的消费时间是由指数分布算出来的，因此单条消息是的消费时间是没有价值的，我们需要统计一批消息来估计provider消费消息的大概时长。</p>
+<p>这里我做了一个优化，由于是统计一批消息的时长，因此我认为可以不去严格统计每一条消息的耗时。具体来说，在provider中维护一个队列，每次有消息进入就会把当前时间放进队列尾端，而消息处理完以后则会从队列头中取出时间戳，和当前时间的差值近似作为这条消息的耗时。这是在统计批量消息的基础上的一个假设。我认为它有两个好处，一是不在维护消息的map，减少系统开销；二是平滑因指数分布造成消息耗时的波动。</p>
+<p>另外，当我们拿到一批消息的耗时后如何估算指数分布的期望，或者说是服务能力。这里有两个考虑，一是使用中位数。由指数分布的特性，中位数除以lg2即可得其期望。另一种方式是直接使用平均数，因为除了服从指数分布的消息外，还存在一些排队消息。另外平均数计算时的开销更小。在赛后群里的讨论的时候，有人提出说可以通过统计短处理延时请求的数量来作为判断依据，而且效果远好于简单取均值。</p>
+<h5 id="应用评估结果决策"><a href="#应用评估结果决策" class="headerlink" title="应用评估结果决策"></a>应用评估结果决策</h5><p>当我们拿到provider的性能后如何分配请求是相当重要的，可以认为在同一时刻有1024个请求打到gateway中。这一块的实现应该会差异很大，我的设计相对简单。每次回调会携带目标provider由批量消息计算出的耗时，在gateway这端会维持住这个状态。另外，我们给每个provider设置一个最小发送请求的阈值，即饥饿值，当没有达到这个数量时，请求会优先发给这个provider。当三个provider都不饥饿时，则会依据维持的耗时进行判断，优先选择耗时小的，直到达到其上限，再选择耗时第二短的provider发送请求。</p>
+<p>这种方法看起来有点傻，但是也是有其考虑的。因为当你向耗时最快的provider发送了过量请求后，会有部分请求进入队列排队，从而拖慢该provider的耗时，使其他的provider可以处理消息。但是也存在一个问题，provider耗时信息的回调是不及时的，也就是说当得到耗时变慢的回调时，可能provider早就已经处于过载的状态。因此，回调的时机也很关键。在我的方案中回调的时机是由当前还未处理完的请求的数量决定的，这个数量可以认为是最大并发数加上排队消息的数量。当这些请求处理完以后，再开始计算接下来这些数量的请求加上可能新增请求数量的总计数量的消息耗时并回调。</p>
+<p>此外，我给每个provider设置了一个上界upper，当某个provider请求数超过上界时会优先给其他没有超过上界的provider发送请求，当都达到上界时会再依照上面的逻辑决策。这样的设计会给我们提供动态调配provider负载的能力，也就是说可以将处理能力强/消息消费耗时短的provider的上界提高，而把目前处理能力差的provider的上界拉低。这个判断逻辑同样放在回调时处理，不过设置了一个判断条件，即当三个provider都回调过一次之后才会进行调整，防止某个provider的权重很低并且一直得不到回调从而被其他回调快的privoder一直降低upper。</p>
+<h5 id="其他优化"><a href="#其他优化" class="headerlink" title="其他优化"></a>其他优化</h5><p>流水线处理消息：在provider端维护了一个队列，和后台一个线程。计算出的每条耗时信息都会放入对垒中，线程会不断从队列中获取耗时并计算数量，当达到回调数量后会将数量置0并回调。整个过程时异步的，不会阻塞消息处理逻辑。</p>
+<h3 id="大佬思路分享"><a href="#大佬思路分享" class="headerlink" title="大佬思路分享"></a>大佬思路分享</h3><p>单纯基于provider剩余线程数(总线程-工作线程)进行分配似乎也可以达到一个不错的成绩。</p>
+<p>基于回压的(方案)[<a href="https://mp.weixin.qq.com/s/hGTBRfdivxFCqJ-c4gPVaw]，利用`ConcurrentSkipListSet`构造了一个带有取出尾部元素的优先队列数据结构，具体可以看大佬的文章和代码，还是很有意思的。" target="_blank" rel="noopener">https://mp.weixin.qq.com/s/hGTBRfdivxFCqJ-c4gPVaw]，利用`ConcurrentSkipListSet`构造了一个带有取出尾部元素的优先队列数据结构，具体可以看大佬的文章和代码，还是很有意思的。</a></p>
+
+    </section>
+    <footer class="post-footer">
+      <section class="author">
+    <h4>paz</h4>
+    <p>Rock 'n' Roll will break your heart.</p>
+</section>
+
+<section class="author-info">
+    <a class="icon" href="https://github.com/ScaldingBlood"
+       onclick="window.open(this.href);return false;">
+        <span>Github</span>
+    </a>
+</section>
+      <section class="share">
+    <h4>Share this post</h4>
+    <a class="icon-twitter" href="http://twitter.com/share?url=http://lavaoxsea.com/2019/07/27/第五届阿里中间件性能挑战赛总结/"
+       onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+        <span class="hidden">Twitter</span>
+    </a>
+    <a class="icon-weibo" href="http://service.weibo.com/share/share.php?url=http://lavaoxsea.com/2019/07/27/第五届阿里中间件性能挑战赛总结/"
+        onclick="window.open(this.href, 'weibo-share', 'width=550,height=235');return false;">
+         <span class="">Weibo</span>
+     </a>
+    <!-- 
+    <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://lavaoxsea.com/2019/07/27/第五届阿里中间件性能挑战赛总结/"
+       onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+        <span class="hidden">Facebook</span>
+    </a>
+    <a class="icon-google-plus" href="https://plus.google.com/share?url=http://lavaoxsea.com/2019/07/27/第五届阿里中间件性能挑战赛总结/"
+       onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+        <span class="hidden">Google+</span>
+    </a> -->
+</section>
+    </footer>
+  </article>
+  <nav class="pagination" role="pagination">
+    
+    <span class="page-number">•</span>
+    
+    <a class="older-posts" href="/2019/05/08/Apache工具类源码阅读/">
+        Apache工具类源码阅读 →
+    </a>
+    
+</nav>
+  <div id="comment" class="comments-area">
+    <!-- <h1 class="title"><a href="#disqus_comments" name="disqus_comments">Comments</a></h1>
+
+     -->
+    <div id="vcomments"></div>
+    <script>
+        new Valine({
+            el: '#vcomments',
+            appId: 'ICvK93wM58afCFhIRoHUWBCd-gzGzoHsz',
+            appKey: 'qmM8S0zfhfSIot1Yf1d8qcnK'
+        })
+    </script>
+</div>
+</main>
+
+
+  
+<footer class="site-footer">
+  
+  <a class="subscribe icon-feed" href="atom.xml"><span class="tooltip">Subscribe!</span></a>
+  
+  <div class="inner">
+     <section class="copyright">All content copyright <a href="/">Rock 'n' Roll will break your heart.</a> &copy; 2014 &bull; All rights reserved.</section>
+     <section class="poweredby">Proudly published with <a class="icon-ghost" href="http://zespia.tw/hexo/">Hexo</a></section>
+  </div>
+</footer>
+
+  <script src="/js/jquery.min.js"></script>
+
+<script type="text/javascript" src="/js/jquery.fitvids.js"></script>
+<script type="text/javascript" src="/js/index.js"></script>
+
+<!--  -->
+
+
+
+
+</body>
+</html>

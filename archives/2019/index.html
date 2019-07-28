@@ -49,6 +49,57 @@
   <article class="post">
     <header class="post-header">
       <span class="post-meta">
+      <time datetime="2019-07-26T17:07:24.000Z" itemprop="datePublished">
+          2019-07-27
+      </time>
+    
+</span>
+      <h2 class="post-title"><a href="/2019/07/27/第五届阿里中间件性能挑战赛总结/">第五届阿里中间件性能挑战赛总结</a></h2>
+    </header>
+    <section class="post-excerpt">
+      <p>
+      
+        
+Intro第五届中间件比赛也准时开始了。这次初赛的题目是要设计一个负载均衡的服务，提供给dubbo进行RPC的调用。初赛其实也花了不少时间，最后成绩也很不理想。其实是到了最后一天最后一次尝试进的复赛，非常巧合了可以说。我的架构也不是最优的，这里仅供参考，也会有大佬们的思路介绍。代码已经推到我的(github仓库)[https://github.com/ScaldingBlood/ali-competition-adaptive-loa
+      
+      </p>
+      
+      <p>
+          <a href="/2019/07/27/第五届阿里中间件性能挑战赛总结/" class="excerpt-link">Read More...</a>
+      </p>
+      
+    </section>
+  </article>
+  
+  <article class="post">
+    <header class="post-header">
+      <span class="post-meta">
+      <time datetime="2019-05-08T13:37:08.000Z" itemprop="datePublished">
+          2019-05-08
+      </time>
+    
+</span>
+      <h2 class="post-title"><a href="/2019/05/08/Apache工具类源码阅读/">Apache工具类源码阅读</a></h2>
+    </header>
+    <section class="post-excerpt">
+      <p>
+      
+        Intro常用的有commons-lang3 commons-io commons-collections，工具类并没有复杂的结构，阅读起来简单。很适合学习优秀的代码习惯和细节。文中简要挑一些类说明。
+commons-lang3这个包主要扩展了java.lang，提供一些常用操作。
+StringUtilsString是不可变的，因此对String的修改操作都是返回新建的字符串。此外，类中用到了需要变长参数，如isAnyEmpty(fin
+      
+      </p>
+      
+      <p>
+          <a href="/2019/05/08/Apache工具类源码阅读/" class="excerpt-link">Read More...</a>
+      </p>
+      
+    </section>
+  </article>
+  
+  <article class="post">
+    <header class="post-header">
+      <span class="post-meta">
       <time datetime="2019-03-06T08:24:21.000Z" itemprop="datePublished">
           2019-03-06
       </time>
@@ -66,9 +117,9 @@
 线程共享一个虚拟内存空间及其中资源
 
 
-协程是属于线程的。协程程序是在线程里面跑的，因此协程又称微线程和纤程等
+协程是为非抢占式多任务产生子程序的计算机程序组件，协程允许不同入口点在不同位置暂停或开始执行程序
 协没有线程的上下文切换消耗。协程的调度切换是用户手动切换的,因此更加灵活,因此又叫用户空间线程.
-原子操作性。由于协程是用户调度的，所以不会出现执行一半的代码片段被强制中断了，因此
+原子操作性。由于协程是用户调度的，所以不会出现执行一半的
       
       </p>
       
