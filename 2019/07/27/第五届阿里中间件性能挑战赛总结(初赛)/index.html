@@ -56,7 +56,7 @@
     <h1 class="post-title">第五届阿里中间件性能挑战赛总结</h1>
     <section class="post-content">
       <p><img src="logo.png" alt=""></p>
-<h3 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h3><p>第五届中间件比赛也准时开始了。这次初赛的<a href="https://tianchi.aliyun.com/competition/entrance/231714/information" target="_blank" rel="noopener">题目</a>是要设计一个负载均衡的服务，提供给dubbo进行RPC的调用。初赛其实也花了不少时间，最后成绩也很不理想。其实是到了最后一天最后一次尝试进的复赛，非常巧合了可以说。我的架构也不是最优的，这里仅供参考，也会有大佬们的思路介绍。代码已经推到我的(github仓库)[<a href="https://github.com/ScaldingBlood/ali-competition-adaptive-loadbalance]中。" target="_blank" rel="noopener">https://github.com/ScaldingBlood/ali-competition-adaptive-loadbalance]中。</a></p>
+<h3 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h3><p>第五届中间件比赛也准时开始了。这次初赛的<a href="https://tianchi.aliyun.com/competition/entrance/231714/information" target="_blank" rel="noopener">题目</a>是要设计一个负载均衡的服务，提供给dubbo进行RPC的调用。初赛其实也花了不少时间，最后成绩也很不理想。其实是到了最后一天最后一次尝试进的复赛，非常巧合了可以说。我的架构也不是最优的，这里仅供参考，也会有大佬们的思路介绍。代码已经推到我的<a href="https://github.com/ScaldingBlood/ali-competition-adaptive-loadbalance" target="_blank" rel="noopener">github仓库</a>中。</p>
 <h3 id="题意分析"><a href="#题意分析" class="headerlink" title="题意分析"></a>题意分析</h3><p>简单描述一下。评测给我们提供了三台硬件配置不同的服务器，并且分别在上面提供了RPC接口。其中每个服务器上Dubbo的线程池大小是不同的，当挤压的请求数量超过负载则会跑出线程池满的异常并作为一个失败请求。<br>此外为了模拟动态变化的服务能力，每个dubbo服务都做了最大并发量的限制并且消息的消费时间也是动态变化的，每一段时间变化一次。其中最大并发数小于线程池的大小，它会限制同时能够处理请求的数量并使多剩余的请求进入队列排队。而消费时间服从指数分布，变化的是其期望值。<br>目标是由wrk向在另一台服务器压测，依据成功请求数进行排名。压测模拟1024个连接同时发请求。</p>
 <h3 id="解题"><a href="#解题" class="headerlink" title="解题"></a>解题</h3><p>事实上在题目发出不久后，官方就发了一版题意分析，其中提到了三个待解决的问题：</p>
 <ul>
@@ -79,7 +79,7 @@
 <p>此外，我给每个provider设置了一个上界upper，当某个provider请求数超过上界时会优先给其他没有超过上界的provider发送请求，当都达到上界时会再依照上面的逻辑决策。这样的设计会给我们提供动态调配provider负载的能力，也就是说可以将处理能力强/消息消费耗时短的provider的上界提高，而把目前处理能力差的provider的上界拉低。这个判断逻辑同样放在回调时处理，不过设置了一个判断条件，即当三个provider都回调过一次之后才会进行调整，防止某个provider的权重很低并且一直得不到回调从而被其他回调快的privoder一直降低upper。</p>
 <h5 id="其他优化"><a href="#其他优化" class="headerlink" title="其他优化"></a>其他优化</h5><p>流水线处理消息：在provider端维护了一个队列，和后台一个线程。计算出的每条耗时信息都会放入对垒中，线程会不断从队列中获取耗时并计算数量，当达到回调数量后会将数量置0并回调。整个过程时异步的，不会阻塞消息处理逻辑。</p>
 <h3 id="大佬思路分享"><a href="#大佬思路分享" class="headerlink" title="大佬思路分享"></a>大佬思路分享</h3><p>单纯基于provider剩余线程数(总线程-工作线程)进行分配似乎也可以达到一个不错的成绩。</p>
-<p>基于回压的(方案)[<a href="https://mp.weixin.qq.com/s/hGTBRfdivxFCqJ-c4gPVaw]，利用`ConcurrentSkipListSet`构造了一个带有取出尾部元素的优先队列数据结构，具体可以看大佬的文章和代码，还是很有意思的。" target="_blank" rel="noopener">https://mp.weixin.qq.com/s/hGTBRfdivxFCqJ-c4gPVaw]，利用`ConcurrentSkipListSet`构造了一个带有取出尾部元素的优先队列数据结构，具体可以看大佬的文章和代码，还是很有意思的。</a></p>
+<p>基于回压的<a href="https://mp.weixin.qq.com/s/hGTBRfdivxFCqJ-c4gPVaw" target="_blank" rel="noopener">方案</a>，利用<code>ConcurrentSkipListSet</code>构造了一个带有取出尾部元素的优先队列数据结构，具体可以看大佬的文章和代码，还是很有意思的。</p>
 
     </section>
     <footer class="post-footer">
@@ -96,20 +96,20 @@
 </section>
       <section class="share">
     <h4>Share this post</h4>
-    <a class="icon-twitter" href="http://twitter.com/share?url=http://lavaoxsea.com/2019/07/27/第五届阿里中间件性能挑战赛总结/"
+    <a class="icon-twitter" href="http://twitter.com/share?url=http://lavaoxsea.com/2019/07/27/第五届阿里中间件性能挑战赛总结(初赛)/"
        onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
         <span class="hidden">Twitter</span>
     </a>
-    <a class="icon-weibo" href="http://service.weibo.com/share/share.php?url=http://lavaoxsea.com/2019/07/27/第五届阿里中间件性能挑战赛总结/"
+    <a class="icon-weibo" href="http://service.weibo.com/share/share.php?url=http://lavaoxsea.com/2019/07/27/第五届阿里中间件性能挑战赛总结(初赛)/"
         onclick="window.open(this.href, 'weibo-share', 'width=550,height=235');return false;">
          <span class="">Weibo</span>
      </a>
     <!-- 
-    <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://lavaoxsea.com/2019/07/27/第五届阿里中间件性能挑战赛总结/"
+    <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://lavaoxsea.com/2019/07/27/第五届阿里中间件性能挑战赛总结(初赛)/"
        onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
         <span class="hidden">Facebook</span>
     </a>
-    <a class="icon-google-plus" href="https://plus.google.com/share?url=http://lavaoxsea.com/2019/07/27/第五届阿里中间件性能挑战赛总结/"
+    <a class="icon-google-plus" href="https://plus.google.com/share?url=http://lavaoxsea.com/2019/07/27/第五届阿里中间件性能挑战赛总结(初赛)/"
        onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
         <span class="hidden">Google+</span>
     </a> -->
