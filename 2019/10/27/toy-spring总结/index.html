@@ -63,7 +63,7 @@
 <h5 id="切面"><a href="#切面" class="headerlink" title="切面"></a>切面</h5><p>切面(Aspect)由切点(Pointcut)和通知(Advice)组成。这里的通知借助AspectJ的<code>MethodInterceptor</code>来实现，通知中通过<code>MethodInvocation</code>来调用原有对象方法。</p>
 <h5 id="在Spring中使用AOP"><a href="#在Spring中使用AOP" class="headerlink" title="在Spring中使用AOP"></a>在Spring中使用AOP</h5><p>在Spring中使用AOP也即能够在加载类的时候根据条件织入相应的切面，另外实现切面、<code>MethodInterceptor</code>、通知等bean的管理。<br>首先是相关bean的管理：和其他的bean加载类似，一样由<code>BeanFactory</code>管理，并由bean的类型来将相应类型的切面bean都加载出来。具体来说，会把我们实现的通知实例化并注入切面。然后根据传入的切点表达式，生成切点对象。包括类型过滤和方法匹配去实现织入的判定。</p>
 <p>织入切面则是借助了<code>BeanPostProcessor</code>接口来实现。在<code>BeanFactory</code>在实例化bean之后，在返回之前，将遍历所有实现了<code>BeanPostProcessor</code>接口的bean，并调用其<code>postProcessAfterInitialization</code>方法。在这里我们实现动态代理的生成并返回。具体来说，项目中<code>AspectJAwareAdvisorAutoProxyCreator</code>实现了<code>BeanPostProcessor</code>接口，并且实现了<code>BeanFactoryAware</code>接口使用<code>BeanFactory</code>加载所有的切面对象。遍历所有的切面，寻找是否存在类匹配的对象。若存在，创建<code>AdvisedSupport</code>对象传入切面的方法过滤器、通知、和具体bean的实例、类型、接口信息。代理工厂会把<code>AdvisedSupport</code>传给<code>JdkDynamicAopProxy</code>获取实际的代理类并返回。从而完成方法的织入。</p>
-<h3 id="Outro"><a href="#Outro" class="headerlink" title="Outro"></a>Outro</h3><p>总体来说toyspring的技术还是很简单的，但是类的依赖继承关系有点杂乱，我稍微整理了下放在我的<img src="https://github.com/scaldingblood" alt="仓库">内。关注点分离和接耦的思想在大型项目中的地位还是很高的，便于设计出清晰易于扩展的系统。</p>
+<h3 id="Outro"><a href="#Outro" class="headerlink" title="Outro"></a>Outro</h3><p>总体来说toyspring的技术还是很简单的，但是类的依赖继承关系有点杂乱，我稍微整理了下放在我的<a href="https://github.com/scaldingblood" target="_blank" rel="noopener">仓库</a>内。关注点分离和接耦的思想在大型项目中的地位还是很高的，便于设计出清晰易于扩展的系统。</p>
 
     </section>
     <footer class="post-footer">
