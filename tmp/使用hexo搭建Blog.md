@@ -135,7 +135,7 @@ server {
         }
 }
 ```
-修改/etc/nginx/sites-enabled中`listen 80 default_server;`为`listen 80;`
+修改/etc/nginx/sites-available/default  `listen 80 default_server;`为`listen 80;`
 并在nginx中的http块中添加`include /etc/nginx/conf.d/*.conf; `和`include /etc/nginx/sites-enabled/*;`重启nginx并添加开机启动项。
 
 之后配置git钩子 也就是一个空的git仓库，当本地的hexo推送给这个仓库时，会有个脚本执行自动拉取代码。
@@ -169,6 +169,24 @@ deploy:
 对于github pages：检测到根目录的404.html时，会将其作为404页面
 
 对于nginx：修改站点conf，如blog.conf，添加error page条目error_page 404 /404.html;
+
+## HTTPS
+如今，https也是博客标配了，这里我使用最方便的Let’s Encrypt方案，用其提供的certbot来自动签发证书。之后配合nginx配置https。
+配置之前要确保80和443端口是打开的。debian使用的iptables，通过下两行命令实现：
+```
+iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+```
+debian安装certbot，并按照提示配置:
+```shell
+sudo apt install certbot python-certbot-nginx
+sudo certbot --nginx
+```
+生成的证书在/etc/letsencrypt/live/$domain目录下。由于证书会在30天后过期，因此，需要使用cron脚本自动更新。如下：
+`0 3 15 * * root certbot renew > /dev/null`
+每15天凌晨3点更新证书。
+
+certbot在配置完成后，会自动修改你的&lt;server&gt;.conf文件，修改监听443端口并指定证书和私钥的位置。使用`nginx -s reload`使配置生效，此时访问就已经是https的方式了。
 
 ## Outro
 一整天时间搭建Blog，基本达到心里预期，基本都很简明

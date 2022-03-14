@@ -79,7 +79,7 @@ theme: casper
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
    type: git
+   branch: portfolio
    repo: 
     github: https://github.com/ScaldingBlood/ScaldingBlood.github.io.git
-    digitalocean: ssh://paz@178.128.30.230:23333/var/www/blog/html/blog.git
-   branch: master
+    vultr: ssh://paz@202.182.114.206:23333/var/www/blog/html/blog.git
